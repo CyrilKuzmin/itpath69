@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/CyrilKuzmin/itpath69/store"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 )
@@ -56,7 +57,7 @@ func (s *App) loginHandler(c echo.Context) error {
 
 	_, err := s.st.GetUser(c.Request().Context(), username, password)
 	if err != nil {
-		return echo.ErrUnauthorized
+		return errLoginFailed()
 	}
 	sess, _ := s.session.Get(c.Request(), "session")
 	sess.Options = &sessions.Options{
@@ -96,7 +97,11 @@ func (s *App) registerHandler(c echo.Context) error {
 	password := c.FormValue("password")
 	err := s.st.SaveUser(c.Request().Context(), username, password)
 	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+		if store.ErrorIs(err, store.AlreadyExistsErr) {
+			return errUserAlreadyExists(username)
+		} else {
+			return errInternal(err)
+		}
 	}
 	sess, _ := s.session.Get(c.Request(), "session")
 	sess.Options = &sessions.Options{
