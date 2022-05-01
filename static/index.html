@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{{ template "HeaderContent" . }}
+
+<body>
+
+    {{ template "NavbarContent" . }} {{ template "FullScreenHead" . }}
+
+    <main id="main">
+
+        {{ template "IndexAbout" . }} {{ if not .Username }} {{ template "RegisterForm" . }} {{ end }}
+
+    </main>
+    <!-- End #main -->
+
+    {{ template "FooterContent" . }}
+
+</body>
+
+</html>

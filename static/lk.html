@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{{ template "HeaderContent" . }}
+
+<body>
+
+    {{ template "NavbarContent" . }}
+
+    <main id="main">
+        {{ template "SmallHead" . }}
+
+        <!-- ======= Recent Blog Posts Section ======= -->
+        <section id="modules" class="contact">
+
+            <div class="col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                <div class="info">
+                    <div class="container">
+                        <div class="module-box">
+                            <div class="module-img"><img src="assets/img/modules/golang.png" class="img-fluid" alt=""></div>
+                            <div class="meta">
+                                <span class="module-state">В процессе</span>
+                            </div>
+                            <h3 class="post-title">Знакомство</h3>
+                            <p>Краткое описание модуля, что предстоит и т.п.</p>
+                            <a href="module?id=123abc32-1234-1234-123ac1" class="readmore stretched-link"><span>Открыть</span><i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+        <!-- End Recent Blog Posts Section -->
+
+    </main>
+    <!-- End #main -->
+
+    {{ template "FooterContent" . }}
+
+</body>
+
+</html>
