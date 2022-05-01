@@ -50,14 +50,19 @@
                 body: formData,
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-            .then(response => {
-                if (response.redirected) {
+            .then(function(response) {
+                if (response.ok) {
                     window.location.href = "/lk";
                 } else {
-                    throw new Error(`${response.status} ${response.statusText} ${response.url}`);
+                    return response.json();
                 }
             })
-            .catch((error) => {
+            .then(function(json) {
+                if (json != null) {
+                    throw new Error(`${json.message}`);
+                }
+            })
+            .catch(function(error) {
                 displayError(thisForm, error);
             });
     }

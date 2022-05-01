@@ -12,23 +12,27 @@
 
         <!-- ======= Recent Blog Posts Section ======= -->
         <section id="modules" class="contact">
-
-            <div class="col-lg-3" data-aos="fade-up" data-aos-delay="200">
-                <div class="info">
-                    <div class="container">
-                        <div class="module-box">
-                            <div class="module-img"><img src="assets/img/modules/golang.png" class="img-fluid" alt=""></div>
-                            <div class="meta">
-                                <span class="module-state">В процессе</span>
+            {{ range $row := .Rows }}
+            <div class="row">
+                {{range $element := $row.Modules}}
+                <div class="col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="info">
+                        <div class="container">
+                            <div class="module-box">
+                                <div class="module-img"><img src="{{$element.Logo}}" class="img-fluid" alt=""></div>
+                                <div class="meta">
+                                    <span class="module-state">В процессе</span>
+                                </div>
+                                <h3 class="post-title">{{$element.Name}}</h3>
+                                <p>{{$element.Description}}</p>
+                                <a href="module?id={{$element.Id}}" class="readmore stretched-link"><span>Открыть</span><i class="bi bi-arrow-right"></i></a>
                             </div>
-                            <h3 class="post-title">Знакомство</h3>
-                            <p>Краткое описание модуля, что предстоит и т.п.</p>
-                            <a href="module?id=123abc32-1234-1234-123ac1" class="readmore stretched-link"><span>Открыть</span><i class="bi bi-arrow-right"></i></a>
                         </div>
                     </div>
                 </div>
+                {{end}}
             </div>
-
+            {{ end }}
         </section>
         <!-- End Recent Blog Posts Section -->
 

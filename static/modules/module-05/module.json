@@ -1,0 +1,8 @@
+{
+    "id": 5,
+    "stage_id": 0,
+    "name": "Модуль 5",
+    "description": "Подробное описание сервиса и общие инструкции для начала пути",
+    "tags": ["basics"],
+    "logo": "/assets/img/modules/5.png"
+}

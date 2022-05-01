@@ -2,22 +2,14 @@ package server
 
 import (
 	"net/http"
-	"time"
 
-	"github.com/gorilla/sessions"
+	"github.com/CyrilKuzmin/itpath69/models"
+	"github.com/CyrilKuzmin/itpath69/store"
 	"github.com/labstack/echo/v4"
 )
 
-func (s *App) getUsernameIfAny(c echo.Context) string {
-	sess, err := s.session.Get(c.Request(), "session")
-	if err != nil {
-		return ""
-	}
-	if sess.Values["username"] != nil {
-		return sess.Values["username"].(string)
-	}
-	return ""
-}
+var startModulesAmount = 4
+var modulesPreviewsInRow = 4
 
 func (s *App) indexHandler(c echo.Context) error {
 	username := s.getUsernameIfAny(c)
@@ -33,19 +25,46 @@ func (s *App) loginPageHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "login.html", map[string]interface{}{})
 }
 
+type ModulesRow struct {
+	Modules []models.ModuleMeta
+}
+
 func (s *App) lkHandler(c echo.Context) error {
-	sess, err := s.session.Get(c.Request(), "session")
-	if err != nil {
+	// redirect to login page if no session found
+	username := s.getUsernameIfAny(c)
+	if username == "" {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
+	// get the list of opened modules and show them
+	user, err := s.st.GetUser(c.Request().Context(), username)
+	if err != nil {
+		return errInternal(err)
+	}
+	modulesPreviews, err := s.st.GetModulesMeta(c.Request().Context(), user.ModulesOpened)
+	if err != nil {
+		return errInternal(err)
+	}
+	rows := previewsToRowsByN(modulesPreviews, modulesPreviewsInRow)
+	if len(rows) > 1 {
+		// swap rows in desc order
+		for i := 0; i < len(rows)/2; i++ {
+			rows[i], rows[len(rows)-1-i] = rows[len(rows)-1-i], rows[i]
+		}
+	}
+
 	return c.Render(http.StatusOK, "lk.html", map[string]interface{}{
-		"Username": sess.Values["username"],
+		"Username": username,
+		"Rows":     rows,
 	})
 }
 
 func (s *App) moduleHandler(c echo.Context) error {
+	sess, err := s.session.Get(c.Request(), "session")
+	if err != nil {
+		c.Redirect(http.StatusMovedPermanently, "/login")
+	}
 	return c.Render(http.StatusOK, "module.html", map[string]interface{}{
-		"Username": "Cyrilit",
+		"Username": sess.Values["username"],
 		"Id":       c.QueryParam("id"),
 	})
 }
@@ -53,20 +72,12 @@ func (s *App) moduleHandler(c echo.Context) error {
 func (s *App) loginHandler(c echo.Context) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
-
-	_, err := s.st.GetUser(c.Request().Context(), username, password)
+	_, err := s.st.CheckUserPassword(c.Request().Context(), username, password)
 	if err != nil {
-		return echo.ErrUnauthorized
+		return errLoginFailed()
 	}
-	sess, _ := s.session.Get(c.Request(), "session")
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 7,
-		HttpOnly: true,
-	}
-	sess.Values["username"] = username
-	sess.Save(c.Request(), c.Response())
-	return c.Redirect(http.StatusMovedPermanently, "/lk")
+	s.setUserSession(c, username)
+	return c.String(http.StatusOK, "OK")
 }
 
 func (s *App) logoutHandler(c echo.Context) error {
@@ -74,20 +85,7 @@ func (s *App) logoutHandler(c echo.Context) error {
 	if err != nil || sess.ID == "" {
 		return c.Redirect(http.StatusMovedPermanently, "/")
 	}
-	sess.Options = &sessions.Options{
-		Path:   "/",
-		MaxAge: -1,
-	}
-	sess.Save(c.Request(), c.Response())
-	// Ensure that it will work everywhere
-	c.SetCookie(&http.Cookie{
-		Name:    "session",
-		Value:   "",
-		MaxAge:  -1,
-		Path:    "/",
-		Domain:  "",
-		Expires: time.Now().Add(-24 * time.Hour),
-	})
+	s.deleteUserSession(c, sess)
 	return c.Redirect(http.StatusMovedPermanently, "/")
 }
 
@@ -96,15 +94,16 @@ func (s *App) registerHandler(c echo.Context) error {
 	password := c.FormValue("password")
 	err := s.st.SaveUser(c.Request().Context(), username, password)
 	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+		if store.ErrorIs(err, store.AlreadyExistsErr) {
+			return errUserAlreadyExists(username)
+		} else {
+			return errInternal(err)
+		}
 	}
-	sess, _ := s.session.Get(c.Request(), "session")
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 7,
-		HttpOnly: true,
+	err = s.st.OpenModules(c.Request().Context(), username, startModulesAmount)
+	if err != nil {
+		return errInternal(err)
 	}
-	sess.Values["username"] = username
-	sess.Save(c.Request(), c.Response())
+	s.setUserSession(c, username)
 	return c.String(http.StatusOK, "OK")
 }

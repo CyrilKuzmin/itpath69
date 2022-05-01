@@ -1,0 +1,7 @@
+{
+    "id": 4,
+    "name": "Модуль 4",
+    "description": "Еще описание сервиса и общие инструкции для начала пути",
+    "tags": ["basics"],
+    "logo": "/assets/img/modules/4.png"
+}

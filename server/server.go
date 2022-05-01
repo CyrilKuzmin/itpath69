@@ -10,6 +10,7 @@ import (
 
 	mongosessions "github.com/2-72/gorilla-sessions-mongodb"
 	"github.com/CyrilKuzmin/itpath69/config"
+	"github.com/CyrilKuzmin/itpath69/content"
 	"github.com/CyrilKuzmin/itpath69/store"
 	"github.com/CyrilKuzmin/itpath69/store/mongostorage"
 
@@ -26,6 +27,7 @@ type App struct {
 	e       *echo.Echo
 	l       *zap.Logger
 	st      store.Store
+	cm      *content.ContentManager
 	session *mongosessions.MongoDBStore
 }
 
@@ -41,9 +43,12 @@ func NewApp(conf *config.Config) *App {
 	if err != nil {
 		l.Error("cannot init session storage", zap.Error(err))
 	}
+	// init content manager
+	cm := content.NewContentManager(st, l)
 	// create App and init handlers/middlewares
-	s := &App{conf, e, l, st, session}
+	s := &App{conf, e, l, st, cm, session}
 	s.initHandlers()
+	cm.UpdateContentinStorage()
 	return s
 }
 

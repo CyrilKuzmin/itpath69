@@ -10,7 +10,7 @@ import (
 
 // Config struct contains application configuration parameters
 type Config struct {
-	Host   string `env:"HOST,default=localhost"`
+	Host   string `env:"HOST"`
 	Port   string `env:"PORT,default=1323"`
 	Env    string `env:"ENV,default=local"`
 	Secret string `env:"SECRET,default=secret"`
