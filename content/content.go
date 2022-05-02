@@ -25,8 +25,9 @@ import (
 )
 
 type ContentManager struct {
-	st  store.Store
-	log *zap.Logger
+	st           store.Store
+	log          *zap.Logger
+	ModulesTotal int
 }
 
 func NewContentManager(st store.Store, log *zap.Logger) *ContentManager {
@@ -67,6 +68,7 @@ func (cm *ContentManager) UpdateContentinStorage() {
 	if err != nil {
 		log.Fatal("cannot insert modules", zap.Error(err))
 	}
+	cm.ModulesTotal = len(modules)
 }
 
 func (cm *ContentManager) readModule(moduleDir string) models.Module {

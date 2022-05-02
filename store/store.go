@@ -12,15 +12,17 @@ import (
 
 type Store interface {
 	// Users
-	SaveUser(ctx context.Context, username, password string) error
+	SaveUser(ctx context.Context, username, password string) (*models.User, error)
 	CheckUserPassword(ctx context.Context, username, password string) (*models.User, error)
 	GetUser(ctx context.Context, username string) (*models.User, error)
 	// users progress
-	OpenModules(ctx context.Context, username string, amount int) error
-	IncrementCompletedModules(ctx context.Context, username string) error
-	GetModulesMeta(ctx context.Context, amount int) ([]models.ModuleMeta, error)
-	// Base stuff
+	UpdateProgress(ctx context.Context, username string, progress map[int]models.ModuleProgress) error
+	// OpenModules(ctx context.Context, username string, amount int) error
+	// CompleteModule(ctx context.Context, username string, module int) error
+	// Modules
 	SaveModules(ctx context.Context, modules []models.Module) error
+	GetModulesMeta(ctx context.Context, amount int) ([]models.ModuleMeta, error)
+	GetModule(ctx context.Context, id int) (models.Module, error)
 	// And close for GS
 	Close(ctx context.Context)
 }
@@ -94,4 +96,8 @@ func ErrUserAlreadyExists(username string) error {
 
 func ErrUserNotFound(username string) error {
 	return newErrorf(NotFoundErr, nil, "user %v not found", username)
+}
+
+func ErrModuleNotFound(id int) error {
+	return newErrorf(NotFoundErr, nil, "module %v not found", id)
 }

@@ -58,3 +58,12 @@ func previewsToRowsByN(modulesPreviews []models.ModuleMeta, n int) []ModulesRow 
 	rows = append(rows, previewsToRowsByN(modulesPreviews[n:], n)...)
 	return rows
 }
+
+func countCompletedModules(in map[int]models.ModuleProgress) (count int) {
+	for _, v := range in {
+		if !v.CompletedAt.IsZero() {
+			count++
+		}
+	}
+	return
+}

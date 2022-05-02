@@ -22,28 +22,27 @@ type ModuleMeta struct {
 	Description string   `json:"description,omitempty"`
 	Tags        []string `json:"tags,omitempty"`
 	Logo        string   `json:"logo,omitempty"`
+	Completed   bool     `json:"completed"` // will be fullfiled for rendering
 }
 
 // Part contains all valuable Data. Probably it will be MD or HTML
 type Part struct {
-	Id   int    `json:"id,omitempty"`
-	Data string `json:"data,omitempty"`
+	Id       int       `json:"id,omitempty"`
+	Data     string    `json:"data,omitempty"`
+	Comments []Comment `json:"comments"` // will be fullfiled for rendering
 }
 
 // User info and its opened modules
 type User struct {
-	Id               string                 `json:"id,omitempty"`
-	Username         string                 `json:"username,omitempty"`
-	PasswordHash     string                 `json:"password_hash,omitempty"`
-	CreatedAt        time.Time              `json:"created_at,omitempty"`
-	ModulesOpened    int                    `json:"modules_opened,omitempty" bson:"modules_opened"`
-	ModulesCompleted int                    `json:"modules_completed,omitempty" bson:"modules_completed"`
-	Modules          map[int]ModuleProgress `json:"modules,omitempty"`
+	Id           string                 `json:"id,omitempty"`
+	Username     string                 `json:"username,omitempty"`
+	PasswordHash string                 `json:"password_hash,omitempty"`
+	CreatedAt    time.Time              `json:"created_at,omitempty"`
+	Modules      map[int]ModuleProgress `json:"modules,omitempty"`
 }
 
 // ModuleProgress is a module for user. It contains additional metadata. Id - uuid. Created from Module
 type ModuleProgress struct {
-	Id          string    `json:"id,omitempty"`
 	CreatedAt   time.Time `json:"created_at,omitempty"`
 	CompletedAt time.Time `json:"completed_at,omitempty"`
 }

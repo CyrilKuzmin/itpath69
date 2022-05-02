@@ -13,15 +13,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (m *MongoStorage) SaveUser(ctx context.Context, username, password string) error {
+func (m *MongoStorage) SaveUser(ctx context.Context, username, password string) (*models.User, error) {
 	var user *models.User
 	err := m.users.FindOne(ctx, bson.D{{"username", username}}).Decode(&user)
 	if err == nil {
-		return store.ErrUserAlreadyExists(username)
+		return nil, store.ErrUserAlreadyExists(username)
 	}
 	if err != nil {
 		if err != mongo.ErrNoDocuments {
-			return store.ErrInternal(err)
+			return nil, store.ErrInternal(err)
 		}
 	}
 	pwMd5 := md5.Sum([]byte(password))
@@ -30,12 +30,13 @@ func (m *MongoStorage) SaveUser(ctx context.Context, username, password string) 
 		Username:     username,
 		PasswordHash: hex.EncodeToString(pwMd5[:]),
 		CreatedAt:    time.Now(),
+		Modules:      map[int]models.ModuleProgress{},
 	}
 	_, err = m.users.InsertOne(ctx, user)
 	if err != nil {
-		return store.ErrInternal(err)
+		return nil, store.ErrInternal(err)
 	}
-	return nil
+	return user, nil
 }
 
 func (m *MongoStorage) CheckUserPassword(ctx context.Context, username, password string) (*models.User, error) {

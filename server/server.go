@@ -88,6 +88,9 @@ func (s *App) initHandlers() {
 	// restricted
 	s.e.GET("/lk", s.lkHandler)
 	s.e.GET("/module", s.moduleHandler)
+	// temp
+	s.e.GET("/more", s.giveMeModules)
+	s.e.GET("/complete", s.completeModule)
 }
 
 // Start server

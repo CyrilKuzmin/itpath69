@@ -15,10 +15,10 @@
             <div class="container">
 
                 <div class="d-flex justify-content-between align-items-center">
-                    <h2>Знакомство</h2>
+                    <h2>{{ .Module.Name }}</h2>
                     <ol>
                         <li><a href="/lk">Домой</a></li>
-                        <li>Знакомство</li>
+                        <li>{{ .Module.Name }}</li>
                     </ol>
                 </div>
 
@@ -30,25 +30,19 @@
         <section id="module" class="module">
             <div class="container" data-aos="fade-up">
 
-
                 <div class="col-lg-8">
                     <div class="module-info">
-                        <h3>Project {{ .Id }} information</h3>
                         <ul>
-                            <li><strong>Category</strong>: Web design</li>
-                            <li><strong>Client</strong>: {{ .Username }} </li>
+                            <li><strong>Описание</strong>: {{ .Module.Description }}</li>
+                            <li><strong>Тэги</strong>: {{ range $t := .Module.Tags}} <span class="badge bg-info">{{ $t }}</span> {{ end }}</li>
                             <li><strong>Project date</strong>: 01 March, 2020</li>
                             <li><strong>Project URL</strong>: <a href="#">www.example.com</a></li>
                         </ul>
                     </div>
-                    <div class="module-description">
-                        <h2>This is an example of portfolio detail</h2>
-                        <p>
-                            Autem ipsum nam porro corporis rerum. Quis eos dolorem eos itaque inventore commodi labore quia quia. Exercitationem repudiandae officiis neque suscipit non officia eaque itaque enim. Voluptatem officia accusantium nesciunt est omnis tempora consectetur
-                            dignissimos. Sequi nulla at esse enim cum deserunt eius.
-                        </p>
-                    </div>
+                    <div class="module-description"></div>
+                    {{ range $p := .Data}} {{ $p }} {{ end}}
                 </div>
+            </div>
 
             </div>
         </section>

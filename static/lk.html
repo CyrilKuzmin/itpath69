@@ -21,7 +21,9 @@
                             <div class="module-box">
                                 <div class="module-img"><img src="{{$element.Logo}}" class="img-fluid" alt=""></div>
                                 <div class="meta">
-                                    <span class="module-state">В процессе</span>
+                                    {{ if $element.Completed }}
+                                    <span class="badge bg-success">Завершен</span> {{ else }}
+                                    <span class="badge bg-info">В процессе</span> {{ end }}
                                 </div>
                                 <h3 class="post-title">{{$element.Name}}</h3>
                                 <p>{{$element.Description}}</p>
@@ -32,6 +34,7 @@
                 </div>
                 {{end}}
             </div>
+            <p></p>
             {{ end }}
         </section>
         <!-- End Recent Blog Posts Section -->
