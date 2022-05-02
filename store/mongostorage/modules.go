@@ -3,7 +3,7 @@ package mongostorage
 import (
 	"context"
 
-	"github.com/CyrilKuzmin/itpath69/models"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
 	"github.com/CyrilKuzmin/itpath69/store"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,7 +19,7 @@ func (m *MongoStorage) saveStuff(ctx context.Context, col *mongo.Collection, ite
 	return nil
 }
 
-func (m *MongoStorage) SaveModules(ctx context.Context, modules []models.Module) error {
+func (m *MongoStorage) SaveModules(ctx context.Context, modules []module.Module) error {
 	items := make([]interface{}, 0)
 	for _, s := range modules {
 		items = append(items, s)
@@ -27,8 +27,8 @@ func (m *MongoStorage) SaveModules(ctx context.Context, modules []models.Module)
 	return m.saveStuff(ctx, m.modules, items)
 }
 
-func (m *MongoStorage) GetModulesMeta(ctx context.Context, amount int) ([]models.ModuleMeta, error) {
-	res := make([]models.ModuleMeta, 0)
+func (m *MongoStorage) GetModulesMeta(ctx context.Context, amount int) ([]module.ModuleMeta, error) {
+	res := make([]module.ModuleMeta, 0)
 	opts := options.Find().SetProjection(bson.D{{"meta", 1}, {"_id", 0}})
 	// {"_id", bson.D{{"$lte", amount}}
 	cur, err := m.modules.Find(ctx, bson.D{{"_id", bson.D{{"$lte", amount}}}}, opts)
@@ -37,7 +37,7 @@ func (m *MongoStorage) GetModulesMeta(ctx context.Context, amount int) ([]models
 	}
 	defer cur.Close(ctx)
 	for cur.Next(ctx) {
-		var m models.Module
+		var m module.Module
 		err := cur.Decode(&m)
 		if err != nil {
 			return nil, store.ErrInternal(err)
@@ -50,8 +50,8 @@ func (m *MongoStorage) GetModulesMeta(ctx context.Context, amount int) ([]models
 	return res, nil
 }
 
-func (m *MongoStorage) GetModule(ctx context.Context, id int) (models.Module, error) {
-	var res models.Module
+func (m *MongoStorage) GetModule(ctx context.Context, id int) (module.Module, error) {
+	var res module.Module
 	err := m.modules.FindOne(ctx, bson.D{
 		{"_id", id},
 	}).Decode(&res)

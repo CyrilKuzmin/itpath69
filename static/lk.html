@@ -14,20 +14,20 @@
         <section id="modules" class="contact">
             {{ range $row := .Rows }}
             <div class="row">
-                {{range $element := $row.Modules}}
+                {{range $module := $row}}
                 <div class="col-lg-3" data-aos="fade-up" data-aos-delay="200">
                     <div class="info">
                         <div class="container">
                             <div class="module-box">
-                                <div class="module-img"><img src="{{$element.Logo}}" class="img-fluid" alt=""></div>
+                                <div class="module-img"><img src="{{$module.Logo}}" class="img-fluid" alt=""></div>
                                 <div class="meta">
-                                    {{ if $element.Completed }}
+                                    {{ if $module.Completed }}
                                     <span class="badge bg-success">Завершен</span> {{ else }}
                                     <span class="badge bg-info">В процессе</span> {{ end }}
                                 </div>
-                                <h3 class="post-title">{{$element.Name}}</h3>
-                                <p>{{$element.Description}}</p>
-                                <a href="module?id={{$element.Id}}" class="readmore stretched-link"><span>Открыть</span><i class="bi bi-arrow-right"></i></a>
+                                <h3 class="post-title">{{$module.Name}}</h3>
+                                <p>{{$module.Description}}</p>
+                                <a href="module?id={{$module.Id}}" class="readmore stretched-link"><span>Открыть</span><i class="bi bi-arrow-right"></i></a>
                             </div>
                         </div>
                     </div>

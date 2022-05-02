@@ -19,26 +19,25 @@ import (
 	"log"
 	"os"
 
-	"github.com/CyrilKuzmin/itpath69/models"
-	"github.com/CyrilKuzmin/itpath69/store"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
 	"go.uber.org/zap"
 )
 
 type ContentManager struct {
-	st           store.Store
-	log          *zap.Logger
-	ModulesTotal int
+	moduleService module.Service
+	log           *zap.Logger
+	ModulesTotal  int
 }
 
-func NewContentManager(st store.Store, log *zap.Logger) *ContentManager {
+func NewContentManager(ms module.Service, log *zap.Logger) *ContentManager {
 	return &ContentManager{
-		st:  st,
-		log: log,
+		moduleService: ms,
+		log:           log,
 	}
 }
 
 func (cm *ContentManager) UpdateContentinStorage() {
-	var modules []models.Module
+	var modules []module.Module
 	baseDir := "static/modules"
 	baseDirInfo, err := os.ReadDir(baseDir)
 	if err != nil {
@@ -46,11 +45,11 @@ func (cm *ContentManager) UpdateContentinStorage() {
 	}
 	for _, m := range baseDirInfo {
 		modulePath := fmt.Sprintf("%v/%v", baseDir, m.Name())
-		module := cm.readModule(modulePath)
-		module.Data = make([]models.Part, 0)
+		m := cm.readModule(modulePath)
+		m.Data = make([]module.Part, 0)
 
 		moduleDirInfo, err := os.ReadDir(modulePath)
-		parts := make([]models.Part, 0)
+		parts := make([]module.Part, 0)
 		if err != nil {
 			log.Fatal("cannot list module dir", zap.Error(err), zap.String("dir", modulePath))
 		}
@@ -61,19 +60,19 @@ func (cm *ContentManager) UpdateContentinStorage() {
 			partPath := fmt.Sprintf("%v/%v", modulePath, p.Name())
 			parts = append(parts, cm.readPart(partPath))
 		}
-		module.Data = append(module.Data, parts...)
-		modules = append(modules, module)
+		m.Data = append(m.Data, parts...)
+		modules = append(modules, m)
 	}
-	err = cm.st.SaveModules(context.Background(), modules)
+	err = cm.moduleService.CreateModules(context.Background(), modules)
 	if err != nil {
 		log.Fatal("cannot insert modules", zap.Error(err))
 	}
 	cm.ModulesTotal = len(modules)
 }
 
-func (cm *ContentManager) readModule(moduleDir string) models.Module {
-	var module models.Module
-	var moduleMeta models.ModuleMeta
+func (cm *ContentManager) readModule(moduleDir string) module.Module {
+	var m module.Module
+	var moduleMeta module.ModuleMeta
 	meta, err := os.Open(fmt.Sprintf("%v/module.json", moduleDir))
 	defer meta.Close()
 	if err != nil {
@@ -81,13 +80,13 @@ func (cm *ContentManager) readModule(moduleDir string) models.Module {
 	}
 	metaValue, _ := io.ReadAll(meta)
 	json.Unmarshal([]byte(metaValue), &moduleMeta)
-	module.Meta = moduleMeta
-	module.Id = moduleMeta.Id
-	return module
+	m.Meta = moduleMeta
+	m.Id = moduleMeta.Id
+	return m
 }
 
-func (cm *ContentManager) readPart(partDir string) models.Part {
-	var part models.Part
+func (cm *ContentManager) readPart(partDir string) module.Part {
+	var part module.Part
 	meta, err := os.Open(fmt.Sprintf("%v/part.json", partDir))
 	defer meta.Close()
 	if err != nil {

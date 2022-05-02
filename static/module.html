@@ -35,7 +35,9 @@
                         <ul>
                             <li><strong>Описание</strong>: {{ .Module.Description }}</li>
                             <li><strong>Тэги</strong>: {{ range $t := .Module.Tags}} <span class="badge bg-info">{{ $t }}</span> {{ end }}</li>
-                            <li><strong>Project date</strong>: 01 March, 2020</li>
+                            <li><strong>Открыт</strong>: {{ .OpenedAt }} </li>
+                            {{ if .Completed }}
+                            <li><strong>Завершен</strong>: {{ .CompletedAt }} </li> {{ end}}
                             <li><strong>Project URL</strong>: <a href="#">www.example.com</a></li>
                         </ul>
                     </div>
