@@ -125,7 +125,6 @@ func (w *Web) moduleHandler(c echo.Context) error {
 func (w *Web) newCommentHandler(c echo.Context) error {
 	text := c.FormValue("text")
 	moduleIdValue := c.FormValue("module_id")
-	fmt.Println(text)
 	moduleId, err := strconv.Atoi(moduleIdValue)
 	if err != nil {
 		return errInternal(err)
@@ -172,7 +171,6 @@ func (w *Web) updateCommentHandler(c echo.Context) error {
 	if username == "" {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
-	fmt.Println(username, commentId, text)
 	// update comment
 	err := w.commentService.UpdateComment(c.Request().Context(), username, commentId, text)
 	if err != nil {

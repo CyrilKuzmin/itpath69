@@ -3,7 +3,6 @@ package mongostorage
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
 	"github.com/CyrilKuzmin/itpath69/store"
@@ -73,12 +72,10 @@ func (m *MongoStorage) ListCommentsByModule(ctx context.Context, user string, mo
 
 func (m *MongoStorage) GetCommentByID(ctx context.Context, user, commentId string) (*comment.Comment, error) {
 	res := comment.Comment{}
-	fmt.Println(user, commentId)
 	err := m.comments.FindOne(ctx, bson.M{
 		"_id":  commentId,
 		"user": user,
 	}).Decode(&res)
-	fmt.Println(err, res)
 	if err != nil {
 		return nil, store.ErrInternal(err)
 	}
