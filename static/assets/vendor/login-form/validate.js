@@ -54,12 +54,12 @@
                 if (response.ok) {
                     window.location.href = "/lk";
                 } else {
-                    return response.json();
+                    return response.text();
                 }
             })
-            .then(function(json) {
-                if (json != null) {
-                    throw new Error(`${json.message}`);
+            .then(function(text) {
+                if (text != null) {
+                    throw new Error(`${text}`);
                 }
             })
             .catch(function(error) {
@@ -69,7 +69,7 @@
 
     function displayError(thisForm, error) {
         thisForm.querySelector('.loading').classList.remove('d-block');
-        thisForm.querySelector('.error-message').innerHTML = error;
+        thisForm.querySelector('.error-message').innerHTML = error.message.split("=")[2].replace('"', '');
         thisForm.querySelector('.error-message').classList.add('d-block');
     }
 

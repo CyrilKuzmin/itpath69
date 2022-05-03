@@ -9,13 +9,12 @@ import (
 )
 
 type MongoStorage struct {
-	client  *mongo.Client
-	ctx     context.Context
-	log     *zap.Logger
-	users   *mongo.Collection
-	stages  *mongo.Collection
-	modules *mongo.Collection
-	parts   *mongo.Collection
+	client   *mongo.Client
+	ctx      context.Context
+	log      *zap.Logger
+	users    *mongo.Collection
+	modules  *mongo.Collection
+	comments *mongo.Collection
 	// Sessions used as a session store, should be imported
 	Sessions *mongo.Collection
 }
@@ -32,18 +31,16 @@ func NewMongo(log *zap.Logger, uri, database string) *MongoStorage {
 		log.Fatal("cannot ping mongo server", zap.Error(err))
 	}
 	users := client.Database(database).Collection("users")
-	stages := client.Database(database).Collection("stages")
 	modules := client.Database(database).Collection("modules")
-	parts := client.Database(database).Collection("parts")
+	comments := client.Database(database).Collection("comments")
 	sess := client.Database(database).Collection("sessions")
 	return &MongoStorage{
 		client:   client,
 		ctx:      ctx,
 		log:      log,
 		users:    users,
-		stages:   stages,
+		comments: comments,
 		modules:  modules,
-		parts:    parts,
 		Sessions: sess,
 	}
 }

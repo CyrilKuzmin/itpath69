@@ -42,7 +42,10 @@
                         </ul>
                     </div>
                     <div class="module-description"></div>
-                    {{ range $p := .Data}} {{ $p }} {{ end}}
+                    {{ range $p := .Data}} {{ $p.Data }}
+                    <p></p>
+                    {{ range $c := $p.Comments }} {{ $c.Text }}
+                    <p></p> {{ end }} {{ end}}
                 </div>
             </div>
 

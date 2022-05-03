@@ -12,6 +12,7 @@ import (
 
 	"github.com/CyrilKuzmin/itpath69/config"
 	"github.com/CyrilKuzmin/itpath69/content"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/users"
 	"github.com/CyrilKuzmin/itpath69/store/mongostorage"
@@ -40,7 +41,8 @@ func NewApp(conf *config.Config) *App {
 	// init echo server with its dependencies
 	us := users.NewService(st, log)
 	ms := module.NewService(st, log)
-	webserver := web.NewWeb(log, session, us, ms)
+	cs := comment.NewService(st, log)
+	webserver := web.NewWeb(log, session, us, ms, cs)
 	// init content manager
 	cm := content.NewContentManager(ms, log)
 	// create App and init handlers/middlewares

@@ -8,7 +8,11 @@ import (
 )
 
 func errInternal(err error) *echo.HTTPError {
-	return echo.NewHTTPError(http.StatusInternalServerError, "Системная ошибка: %v", err.Error())
+	return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Системная ошибка: %v", err.Error()))
+}
+
+func errBadRequest() *echo.HTTPError {
+	return echo.NewHTTPError(http.StatusBadRequest, "Ошибка в запросе")
 }
 
 func errLoginFailed() *echo.HTTPError {
@@ -17,4 +21,8 @@ func errLoginFailed() *echo.HTTPError {
 
 func errUserAlreadyExists(username string) *echo.HTTPError {
 	return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Пользователь %v уже существует", username))
+}
+
+func errModuleNotAllowed(id int) *echo.HTTPError {
+	return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("У вас нет доступа к модулю #%v", id))
 }

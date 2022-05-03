@@ -1,10 +1,12 @@
 package web
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
 
+	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
 	"github.com/CyrilKuzmin/itpath69/store"
 	"github.com/labstack/echo/v4"
 )
@@ -57,6 +59,11 @@ func (w *Web) lkHandler(c echo.Context) error {
 	})
 }
 
+type ModulePart struct {
+	Data     template.HTML
+	Comments []*comment.Comment
+}
+
 func (w *Web) moduleHandler(c echo.Context) error {
 	// redirect to login page if no session found
 	username := w.getUsernameIfAny(c)
@@ -75,17 +82,31 @@ func (w *Web) moduleHandler(c echo.Context) error {
 		return errInternal(err)
 	}
 	if id > len(user.Modules) {
-		c.String(http.StatusForbidden, "")
+		return errModuleNotAllowed(id)
 	}
 	// load module
 	module, err := w.moduleService.GetModuleByID(c.Request().Context(), id)
 	if err != nil {
 		return errInternal(err)
 	}
-	// need to convert string into template.HTML
-	data := make([]template.HTML, len(module.Data))
+	// list comments for module
+	cmts, err := w.commentService.ListCommentsByModule(c.Request().Context(), username, id)
+	if err != nil {
+		return errInternal(err)
+	}
+	comments := make(map[int][]*comment.Comment)
+	for _, c := range cmts {
+		comments[c.PartId] = append(comments[c.PartId], c)
+	}
+	fmt.Println(comments)
+	fmt.Println(cmts)
+	// need to convert string into template.HTML and add comments
+	data := make([]ModulePart, len(module.Data))
 	for i, p := range module.Data {
-		data[i] = template.HTML(p.Data)
+		data[i] = ModulePart{
+			Data:     template.HTML(p.Data),
+			Comments: comments[p.Id],
+		}
 	}
 	// render
 	return c.Render(http.StatusOK, "module.html", map[string]interface{}{
@@ -97,6 +118,85 @@ func (w *Web) moduleHandler(c echo.Context) error {
 		"OpenedAt":    user.Modules[module.Meta.Id].CreatedAt,
 		"Data":        data,
 	})
+}
+
+func (w *Web) newCommentHandler(c echo.Context) error {
+	text := c.FormValue("text")
+	moduleIdValue := c.FormValue("module_id")
+	fmt.Println(text)
+	moduleId, err := strconv.Atoi(moduleIdValue)
+	if err != nil {
+		return errInternal(err)
+	}
+	partIdValue := c.FormValue("part_id")
+	partId, err := strconv.Atoi(partIdValue)
+	if err != nil {
+		return errInternal(err)
+	}
+	// redirect to login page if no session found
+	username := w.getUsernameIfAny(c)
+	if username == "" {
+		c.Redirect(http.StatusMovedPermanently, "/login")
+	}
+	// check if IDs are valid and allowed
+	user, err := w.userService.GetUserByName(c.Request().Context(), username)
+	if err != nil {
+		return errInternal(err)
+	}
+	if moduleId > user.ModulesOpened {
+		return errModuleNotAllowed(moduleId)
+	}
+	module, err := w.moduleService.GetModuleByID(c.Request().Context(), moduleId)
+	if err != nil {
+		return errInternal(err)
+	}
+	if partId > len(module.Data) {
+		return errBadRequest()
+	}
+	// create comment
+	err = w.commentService.CreateComment(c.Request().Context(), username, text, moduleId, partId)
+	if err != nil {
+		return errInternal(err)
+	}
+	// send OK
+	return c.String(http.StatusOK, "OK")
+}
+
+func (w *Web) updateCommentHandler(c echo.Context) error {
+	commentId := c.FormValue("comment_id")
+	text := c.FormValue("text")
+	// redirect to login page if no session found
+	username := w.getUsernameIfAny(c)
+	if username == "" {
+		c.Redirect(http.StatusMovedPermanently, "/login")
+	}
+	fmt.Println(username, commentId, text)
+	// update comment
+	err := w.commentService.UpdateComment(c.Request().Context(), username, commentId, text)
+	if err != nil {
+		return errInternal(err)
+	}
+	// send OK
+	return c.String(http.StatusOK, "OK")
+}
+
+func (w *Web) deleteCommentHandler(c echo.Context) error {
+	commentId := c.QueryParam("comment_id")
+	if commentId == "" {
+		return errBadRequest()
+	}
+	// redirect to login page if no session found
+	username := w.getUsernameIfAny(c)
+	if username == "" {
+		c.Redirect(http.StatusMovedPermanently, "/login")
+	}
+	// delete comment
+	err := w.commentService.DeleteCommentByID(c.Request().Context(), username, commentId)
+	if err != nil {
+		return errInternal(err)
+	}
+	// send OK
+	return c.String(http.StatusOK, "OK")
 }
 
 func (w *Web) loginHandler(c echo.Context) error {
@@ -137,9 +237,18 @@ func (w *Web) registerHandler(c echo.Context) error {
 // TEMPORARY handlers
 func (w *Web) giveMeModules(c echo.Context) error {
 	username := w.getUsernameIfAny(c)
-	err := w.userService.OpenNewModules(c.Request().Context(), username)
+	if username == "admin" {
+		return errInternal(fmt.Errorf("fuck"))
+	}
+	user, err := w.userService.GetUserByName(c.Request().Context(), username)
 	if err != nil {
 		return errInternal(err)
+	}
+	if len(user.Modules) < w.moduleService.ModulesTotal() {
+		err := w.userService.OpenNewModules(c.Request().Context(), username)
+		if err != nil {
+			return errInternal(err)
+		}
 	}
 	return c.String(http.StatusOK, "OK")
 }
