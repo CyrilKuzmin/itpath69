@@ -38,7 +38,6 @@
                             <li><strong>Открыт</strong>: {{ .OpenedAt }} </li>
                             {{ if .Completed }}
                             <li><strong>Завершен</strong>: {{ .CompletedAt }} </li> {{ end}}
-                            <li><strong>Project URL</strong>: <a href="#">www.example.com</a></li>
                         </ul>
                     </div>
                     <div class="module-description">
@@ -46,8 +45,11 @@
                         <p></p>
                         <div id="comments-for-part-{{ $p.Id}}">
                             {{ range $c := $p.Comments }}
-                            <div id="{{ $c.Id }}">
-                                <button id="delete-comment_{{ $c.Id }}" class="btn-delete-comment badge badge-danger bg-danger ms-1 float-end">X</button>
+                            <div id="{{ $c.Id }}" class="card border-0 mb-3">
+                                <div class="card-header bg-transparent">
+                                    <label class="text-muted fs-6">Последнее обновление: {{ $c.ModifiedAt }}</label>
+                                    <button id="delete-comment_{{ $c.Id }}" class="btn-delete-comment badge badge-danger bg-danger float-sm-end">Удалить</button>
+                                </div>
                                 <div class="card card-body bg-light">{{ $c.Text }}</div>
                                 <p></p>
                             </div>
@@ -65,12 +67,11 @@
                             </form>
                             <p></p>
                         </div>
-                        <p>
-                            <button class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#addCommentToPart{{ $p.Id}}" aria-expanded="false" aria-controls="addCommentToPart{{ $p.Id}}">
-                          Добавить комментарий
-                        </button>
-                        </p>{{ end}}
 
+                        <button class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#addCommentToPart{{ $p.Id}}" aria-expanded="false" aria-controls="addCommentToPart{{ $p.Id}}">
+                                Добавить комментарий
+                            </button>
+                        <p></p>{{ end }}
                     </div>
                 </div>
         </section>
