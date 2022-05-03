@@ -60,6 +60,8 @@ func (w *Web) lkHandler(c echo.Context) error {
 }
 
 type ModulePart struct {
+	Id       int
+	ModuleId int // comment form rendering bug
 	Data     template.HTML
 	Comments []*comment.Comment
 }
@@ -98,21 +100,21 @@ func (w *Web) moduleHandler(c echo.Context) error {
 	for _, c := range cmts {
 		comments[c.PartId] = append(comments[c.PartId], c)
 	}
-	fmt.Println(comments)
-	fmt.Println(cmts)
 	// need to convert string into template.HTML and add comments
 	data := make([]ModulePart, len(module.Data))
 	for i, p := range module.Data {
 		data[i] = ModulePart{
+			Id:       p.Id,
 			Data:     template.HTML(p.Data),
 			Comments: comments[p.Id],
+			ModuleId: module.Id,
 		}
 	}
 	// render
 	return c.Render(http.StatusOK, "module.html", map[string]interface{}{
 		"Username":    username,
 		"User":        user,
-		"Module":      module.Meta,
+		"Module":      module.Meta, // comment form rendering bug
 		"Completed":   !user.Modules[module.Meta.Id].CompletedAt.IsZero(),
 		"CompletedAt": user.Modules[module.Meta.Id].CompletedAt,
 		"OpenedAt":    user.Modules[module.Meta.Id].CreatedAt,
@@ -154,12 +156,12 @@ func (w *Web) newCommentHandler(c echo.Context) error {
 		return errBadRequest()
 	}
 	// create comment
-	err = w.commentService.CreateComment(c.Request().Context(), username, text, moduleId, partId)
+	comment, err := w.commentService.CreateComment(c.Request().Context(), username, text, moduleId, partId)
 	if err != nil {
 		return errInternal(err)
 	}
 	// send OK
-	return c.String(http.StatusOK, "OK")
+	return c.JSON(http.StatusOK, comment)
 }
 
 func (w *Web) updateCommentHandler(c echo.Context) error {
@@ -181,7 +183,7 @@ func (w *Web) updateCommentHandler(c echo.Context) error {
 }
 
 func (w *Web) deleteCommentHandler(c echo.Context) error {
-	commentId := c.QueryParam("comment_id")
+	commentId := c.QueryParam("id")
 	if commentId == "" {
 		return errBadRequest()
 	}

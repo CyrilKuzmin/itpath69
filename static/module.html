@@ -41,21 +41,45 @@
                             <li><strong>Project URL</strong>: <a href="#">www.example.com</a></li>
                         </ul>
                     </div>
-                    <div class="module-description"></div>
-                    {{ range $p := .Data}} {{ $p.Data }}
-                    <p></p>
-                    {{ range $c := $p.Comments }} {{ $c.Text }}
-                    <p></p> {{ end }} {{ end}}
-                </div>
-            </div>
+                    <div class="module-description">
+                        {{ range $p := .Data}}{{ $p.Data }}
+                        <p></p>
+                        <div id="comments-for-part-{{ $p.Id}}">
+                            {{ range $c := $p.Comments }}
+                            <div id="{{ $c.Id }}">
+                                <button id="delete-comment_{{ $c.Id }}" class="btn-delete-comment badge badge-danger bg-danger ms-1 float-end">X</button>
+                                <div class="card card-body bg-light">{{ $c.Text }}</div>
+                                <p></p>
+                            </div>
+                            {{ end }}
+                        </div>
+                        <div class="collapse" id="addCommentToPart{{ $p.Id}}">
+                            <form action="comment" method="post" role="form" class="new-comment-form" id="new-comment-form-for-{{ $p.Id}}">
+                                <div class="mb-3">
+                                    <input type="hidden" name="part_id" value="{{ $p.Id}}">
+                                    <input type="hidden" name="module_id" value="{{ $p.ModuleId}}">
+                                    <label for="textForNewComment{{ $p.Id}}" class="form-label">Комментарий</label>
+                                    <textarea class="form-control" aria-label="text" name="text" id="textForNewComment{{ $p.Id}}" maxlength="1000"></textarea>
+                                </div>
+                                <button type="submit" id="submit-{{ $p.Id}}" class="btn btn-success new-comment-form-submit" data-bs-toggle="collapse" data-bs-target="#addCommentToPart{{ $p.Id}}" aria-expanded="false" aria-controls="addCommentToPart{{ $p.Id}}">Отправить</button>
+                            </form>
+                            <p></p>
+                        </div>
+                        <p>
+                            <button class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#addCommentToPart{{ $p.Id}}" aria-expanded="false" aria-controls="addCommentToPart{{ $p.Id}}">
+                          Добавить комментарий
+                        </button>
+                        </p>{{ end}}
 
-            </div>
+                    </div>
+                </div>
         </section>
         <!-- End Portfolio Details Section -->
-
+        <script>
+        </script>
     </main>
     <!-- End #main -->
-
+    <script src="assets/js/comments.js"></script>
     {{ template "FooterContent" . }}
 
 </body>
