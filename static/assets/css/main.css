@@ -3411,3 +3411,7 @@ section {
     font-size: var(--bs-body-font-size);
     vertical-align: middle;
 }
+
+.multiline-card {
+    white-space: pre;
+}

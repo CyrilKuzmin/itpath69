@@ -26,3 +26,7 @@ func errUserAlreadyExists(username string) *echo.HTTPError {
 func errModuleNotAllowed(id int) *echo.HTTPError {
 	return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("У вас нет доступа к модулю #%v", id))
 }
+
+func errCommentTooLong() *echo.HTTPError {
+	return echo.NewHTTPError(http.StatusBadGateway, "Комментарий слишком длинный")
+}

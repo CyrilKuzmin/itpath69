@@ -11,6 +11,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const MaximumCommentLength = 10000
+
 func (w *Web) indexHandler(c echo.Context) error {
 	username := w.getUsernameIfAny(c)
 	if username == "" {
@@ -63,7 +65,7 @@ type ModulePart struct {
 	Id       int
 	ModuleId int // comment form rendering bug
 	Data     template.HTML
-	Comments []*comment.Comment
+	Comments []*comment.CommentDTO
 }
 
 func (w *Web) moduleHandler(c echo.Context) error {
@@ -96,7 +98,7 @@ func (w *Web) moduleHandler(c echo.Context) error {
 	if err != nil {
 		return errInternal(err)
 	}
-	comments := make(map[int][]*comment.Comment)
+	comments := make(map[int][]*comment.CommentDTO)
 	for _, c := range cmts {
 		comments[c.PartId] = append(comments[c.PartId], c)
 	}
@@ -124,6 +126,9 @@ func (w *Web) moduleHandler(c echo.Context) error {
 
 func (w *Web) newCommentHandler(c echo.Context) error {
 	text := c.FormValue("text")
+	if len(text) > MaximumCommentLength {
+		return errCommentTooLong()
+	}
 	moduleIdValue := c.FormValue("module_id")
 	moduleId, err := strconv.Atoi(moduleIdValue)
 	if err != nil {
@@ -172,12 +177,12 @@ func (w *Web) updateCommentHandler(c echo.Context) error {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
 	// update comment
-	err := w.commentService.UpdateComment(c.Request().Context(), username, commentId, text)
+	newComment, err := w.commentService.UpdateComment(c.Request().Context(), username, commentId, text)
 	if err != nil {
 		return errInternal(err)
 	}
 	// send OK
-	return c.String(http.StatusOK, "OK")
+	return c.JSON(http.StatusOK, newComment)
 }
 
 func (w *Web) deleteCommentHandler(c echo.Context) error {

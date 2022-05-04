@@ -1,25 +1,38 @@
 function newCommentHTML(id, text, modified_at, ) {
     return '<div id="' + id +
         '" class="card border-0 mb-3"><div class="card-header bg-transparent"><label class="text-muted fs-6">Последнее обновление: ' +
-        modified_at + '</label><button id="update-comment_' +
-        id + '" class="btn-update-comment badge badge-primary bg-primary float-sm-end" onclick="makeCommentEditable(\'' +
-        id + '\'">Изменить</button><button id="delete-comment_' +
-        id + '" class="btn-delete-comment badge badge-danger bg-danger float-sm-end">Удалить</button></div><div id="text-' +
+        '</label><label id="last-update-time_' +
+        id + '" class="text-muted fs-6 ms-1">' +
+        modified_at + '</label><button id="delete-comment_' +
+        id + '" class="btn-delete-comment badge badge-danger bg-danger ms-2 float-sm-end">Удалить</button><button id="update-comment_' +
+        id + '" class="btn-update-comment badge badge-primary bg-primary ms-2 float-sm-end" onclick="makeCommentEditable(\'' +
+        id + '\')">Изменить</button></div><div id="text-' +
         id + '" class="card card-body bg-light">' +
         text + '</div><p></p></div>'
 }
 
 function updateCommentFormHTML(id, text) {
-    '<form action="comment" method="put" role="form" class="update-comment-form" id="update-comment-form-for-' +
-    id + '"><div class="mb-3"><input type="hidden" name="id" value="' +
-        id + '"><label for="updatedComment' +
-        id + '" class="form-label">Комментарий</label><textarea class="form-control" aria-label="text" name="text" id="updatedComment' +
+    return '<form action="comment" method="put" role="form" class="update-comment-form" id="update-comment-form-for-' +
+        id + '"><div class="mb-3"><input type="hidden" name="id" value="' +
+        id + '"><textarea class="form-control" aria-label="text" name="text" id="updatedComment' +
         id + '" maxlength="1000">' +
-        text + '</textarea></div><button type="submit" id="btn-update-update-' +
+        text + '</textarea></div><button type="submit" id="btn-submit-update_' +
         id + '" class="btn btn-success btn-update-comment">Отправить</button>' +
-        '<button type="cancel" onclick="cancelCommentEdit(' +
-        id + '">Cancel</button></form>'
+        '<button type="cancel" class="btn btn-light ms-2" onclick="cancelCommentEdit(\'' +
+        id + '\')">Отмена</button></form>'
 }
+
+const tx = document.getElementsByTagName("textarea");
+for (let i = 0; i < tx.length; i++) {
+    tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;");
+    tx[i].addEventListener("input", OnInput, false);
+}
+
+function OnInput() {
+    this.style.height = "auto";
+    this.style.height = (this.scrollHeight) + "px";
+}
+
 
 document.querySelectorAll('.btn-submit-comment').forEach(item => {
     item.addEventListener('click', event => {
@@ -36,9 +49,9 @@ document.querySelectorAll('.btn-submit-comment').forEach(item => {
             commentsBlockID = "comments-for-part-" + partId
             newDeleteBtnID = "delete-comment_" + body.id
             var newCommentBlock = newCommentHTML(body.id, body.text, body.modified_at)
-            document.getElementById(commentsBlockID).innerHTML += newCommentBlock
+            document.getElementById(commentsBlockID).innerHTML += newCommentBlock;
             newDeleteBtn = document.getElementById(newDeleteBtnID)
-            newDeleteBtn.addEventListener('click', event => deleteCommentEvent(event, newDeleteBtn))
+            newDeleteBtn.addEventListener('click', event => deleteCommentEvent(event, body.id))
         }).catch((error) => {
             console.log(error) // TODO handle it better
         });
@@ -47,50 +60,55 @@ document.querySelectorAll('.btn-submit-comment').forEach(item => {
 
 
 document.querySelectorAll('.btn-delete-comment').forEach(item => {
-    item.addEventListener('click', event => deleteCommentEvent(event, item))
+    var commentId = item.id.split("_").at(-1);
+    item.addEventListener('click', event => deleteCommentEvent(event, commentId))
 })
 
-function deleteCommentEvent(event, item) {
-    event.preventDefault();
-    var commentId = item.id.split("_").at(-1);
-    fetch('/comment?id=' + commentId, {
-        method: 'DELETE',
-    }).then((resp) => {
-        return resp.text(); // or resp.text() or whatever the server sends
-    }).then((body) => {
-        var elem = document.getElementById(commentId);
-        elem.remove();
-    }).catch((error) => {
-        console.log(error) // TODO handle it better
-    });
+function deleteCommentEvent(event, commentId) {
+    var result = confirm("Удалить комментарий?");
+    if (result) {
+        event.preventDefault();
+        fetch('/comment?id=' + commentId, {
+            method: 'DELETE',
+        }).then((resp) => {
+            return resp.text(); // or resp.text() or whatever the server sends
+        }).then((body) => {
+            var elem = document.getElementById(commentId);
+            elem.remove();
+        }).catch((error) => {
+            console.log(error) // TODO handle it better
+        })
+    };
 }
 
-function updateCommentEvent(event, item) {
+function updateCommentEvent(event, commentId) {
     event.preventDefault();
-    var commentId = item.id.split("_").at(-1)
     var form = document.getElementById("update-comment-form-for-" + commentId);
     let formData = new FormData(form);
-    fetch('/comment' + commentId, {
+    fetch('/comment', {
         method: 'PUT',
         body: formData,
     }).then((resp) => {
-        return resp.text(); // or resp.text() or whatever the server sends
+        return resp.json(); // or resp.text() or whatever the server sends
     }).then((body) => {
-        var elem = document.getElementById(commentId);
-        elem.remove();
+        form.remove();
+        saveUpdatesComment(body.id, body.text, body.modified_at);
     }).catch((error) => {
         console.log(error) // TODO handle it better
     });
 }
 
 function makeCommentEditable(commentId) {
+    var commentDiv = document.getElementById(commentId);
     var textField = document.getElementById("text-" + commentId);
     var originalText = textField.innerHTML;
     textField.style.display = 'none'; // hide, 'flex' to show it again
-    textField.innerHTML = updateCommentFormHTML(commentId, originalText);
-    newUpdateBtnID = "btn-submit-update-" + body.id
+    document.getElementById('update-comment_' + commentId).style.display = 'none';
+    document.getElementById('delete-comment_' + commentId).style.display = 'none';
+    commentDiv.innerHTML += updateCommentFormHTML(commentId, originalText);
+    newUpdateBtnID = "btn-submit-update_" + commentId
     newUpdateBtn = document.getElementById(newUpdateBtnID)
-    newUpdateBtn.addEventListener('click', event => updateCommentEvent(event, newUpdateBtn))
+    newUpdateBtn.addEventListener('click', event => updateCommentEvent(event, commentId))
 }
 
 function cancelCommentEdit(commentId) {
@@ -98,8 +116,17 @@ function cancelCommentEdit(commentId) {
     var form = document.getElementById("update-comment-form-for-" + commentId)
     form.remove()
     textField.style.display = 'flex';
+    document.getElementById('update-comment_' + commentId).style.display = 'inline-block';
+    document.getElementById('delete-comment_' + commentId).style.display = 'inline-block';
 }
 
-function saveUpdatesComment(commentId, text) {
-
+function saveUpdatesComment(commentId, text, modified_at) {
+    textField = document.getElementById("text-" + commentId);
+    textField.innerHTML = text;
+    textField.style.display = 'flex';
+    deleteBtn = document.getElementById('delete-comment_' + commentId);
+    document.getElementById('update-comment_' + commentId).style.display = 'inline-block';
+    document.getElementById('last-update-time_' + commentId).innerHTML = modified_at;
+    deleteBtn.style.display = 'inline-block';
+    deleteBtn.addEventListener('click', event => deleteCommentEvent(event, commentId))
 }
