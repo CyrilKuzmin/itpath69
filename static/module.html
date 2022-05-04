@@ -49,8 +49,9 @@
                                 <div class="card-header bg-transparent">
                                     <label class="text-muted fs-6">Последнее обновление: {{ $c.ModifiedAt }}</label>
                                     <button id="delete-comment_{{ $c.Id }}" class="btn-delete-comment badge badge-danger bg-danger float-sm-end">Удалить</button>
+                                    <button id="update-comment_{{ $c.Id }}" class="btn-update-comment badge badge-primary bg-primary float-sm-end" onclick="makeCommentEditable('{{$c.Id}}')">Изменить</button>
                                 </div>
-                                <div class="card card-body bg-light">{{ $c.Text }}</div>
+                                <div id="text-{{ $c.Id }}" class="card card-body bg-light">{{ $c.Text }}</div>
                                 <p></p>
                             </div>
                             {{ end }}
@@ -63,7 +64,7 @@
                                     <label for="textForNewComment{{ $p.Id}}" class="form-label">Комментарий</label>
                                     <textarea class="form-control" aria-label="text" name="text" id="textForNewComment{{ $p.Id}}" maxlength="1000"></textarea>
                                 </div>
-                                <button type="submit" id="submit-{{ $p.Id}}" class="btn btn-success new-comment-form-submit" data-bs-toggle="collapse" data-bs-target="#addCommentToPart{{ $p.Id}}" aria-expanded="false" aria-controls="addCommentToPart{{ $p.Id}}">Отправить</button>
+                                <button type="submit" id="submit-{{ $p.Id}}" class="btn btn-success btn-submit-comment" data-bs-toggle="collapse" data-bs-target="#addCommentToPart{{ $p.Id}}" aria-expanded="false" aria-controls="addCommentToPart{{ $p.Id}}">Отправить</button>
                             </form>
                             <p></p>
                         </div>

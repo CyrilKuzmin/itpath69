@@ -164,7 +164,7 @@ func (w *Web) newCommentHandler(c echo.Context) error {
 }
 
 func (w *Web) updateCommentHandler(c echo.Context) error {
-	commentId := c.FormValue("comment_id")
+	commentId := c.FormValue("id")
 	text := c.FormValue("text")
 	// redirect to login page if no session found
 	username := w.getUsernameIfAny(c)
