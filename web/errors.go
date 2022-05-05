@@ -28,5 +28,5 @@ func errModuleNotAllowed(id int) *echo.HTTPError {
 }
 
 func errCommentTooLong() *echo.HTTPError {
-	return echo.NewHTTPError(http.StatusBadGateway, "Комментарий слишком длинный")
+	return echo.NewHTTPError(http.StatusBadRequest, "Комментарий слишком длинный")
 }

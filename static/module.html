@@ -49,8 +49,8 @@
                                 <div class="card-header bg-transparent">
                                     <label class="text-muted fs-6">Последнее обновление: </label>
                                     <label id="last-update-time_{{ $c.Id }}" class="text-muted fs-6 ms-1">{{ $c.ModifiedAt }}</label>
-                                    <button id="delete-comment_{{ $c.Id }}" class="btn-delete-comment badge badge-danger bg-danger ms-2 float-sm-end">Удалить</button>
-                                    <button id="update-comment_{{ $c.Id }}" class="btn-update-comment badge badge-primary bg-primary ms-2 float-sm-end" onclick="makeCommentEditable('{{$c.Id}}')">Изменить</button>
+                                    <button id="delete-comment_{{ $c.Id }}" class="btn-delete-comment badge badge-warning bg-warning ms-2 float-sm-end border-0">Удалить</button>
+                                    <button id="update-comment_{{ $c.Id }}" class="btn-update-comment badge badge-info bg-info badge-pill ms-2 float-sm-end border-0" onclick="makeCommentEditable('{{$c.Id}}')">Изменить</button>
                                 </div>
                                 <div id="text-{{ $c.Id }}" class="multiline-card card card-body bg-light">{{ $c.Text }}</div>
                             </div>

@@ -4,10 +4,10 @@ function newCommentHTML(id, text, modified_at, ) {
         '</label><label id="last-update-time_' +
         id + '" class="text-muted fs-6 ms-1">' +
         modified_at + '</label><button id="delete-comment_' +
-        id + '" class="btn-delete-comment badge badge-danger bg-danger ms-2 float-sm-end">Удалить</button><button id="update-comment_' +
-        id + '" class="btn-update-comment badge badge-primary bg-primary ms-2 float-sm-end" onclick="makeCommentEditable(\'' +
+        id + '" class="btn-delete-comment badge badge-warning bg-warning ms-2 float-sm-end border-0">Удалить</button><button id="update-comment_' +
+        id + '" class="btn-update-comment badge badge-info bg-info badge-pill ms-2 float-sm-end border-0" onclick="makeCommentEditable(\'' +
         id + '\')">Изменить</button></div><div id="text-' +
-        id + '" class="card card-body bg-light">' +
+        id + '" class="multiline-card card card-body bg-light">' +
         text + '</div><p></p></div>'
 }
 
@@ -44,7 +44,11 @@ document.querySelectorAll('.btn-submit-comment').forEach(item => {
             method: form.method,
             body: formData,
         }).then((resp) => {
-            return resp.json(); // or resp.text() or whatever the server sends
+            if (!resp.ok) {
+                return resp.text();
+            } else {
+                return resp.json(); // or resp.text() or whatever the server sends
+            }
         }).then((body) => {
             commentsBlockID = "comments-for-part-" + partId
             newDeleteBtnID = "delete-comment_" + body.id
@@ -53,7 +57,7 @@ document.querySelectorAll('.btn-submit-comment').forEach(item => {
             newDeleteBtn = document.getElementById(newDeleteBtnID)
             newDeleteBtn.addEventListener('click', event => deleteCommentEvent(event, body.id))
         }).catch((error) => {
-            console.log(error) // TODO handle it better
+            displayError(form, error);
         });
     })
 })
@@ -89,12 +93,16 @@ function updateCommentEvent(event, commentId) {
         method: 'PUT',
         body: formData,
     }).then((resp) => {
-        return resp.json(); // or resp.text() or whatever the server sends
+        if (!resp.ok) {
+            return resp.text();
+        } else {
+            return resp.json(); // or resp.text() or whatever the server sends
+        }
     }).then((body) => {
         form.remove();
         saveUpdatesComment(body.id, body.text, body.modified_at);
     }).catch((error) => {
-        console.log(error) // TODO handle it better
+        displayError(form, error);
     });
 }
 
@@ -129,4 +137,10 @@ function saveUpdatesComment(commentId, text, modified_at) {
     document.getElementById('last-update-time_' + commentId).innerHTML = modified_at;
     deleteBtn.style.display = 'inline-block';
     deleteBtn.addEventListener('click', event => deleteCommentEvent(event, commentId))
+}
+
+function displayError(thisForm, error) {
+    thisForm.querySelector('.loading').classList.remove('d-block');
+    thisForm.querySelector('.error-message').innerHTML = error;
+    thisForm.querySelector('.error-message').classList.add('d-block');
 }
