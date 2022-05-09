@@ -3415,3 +3415,36 @@ section {
 .multiline-card {
     white-space: pre;
 }
+
+#carouselExampleDark {
+    height: 90vh;
+    width: 100%;
+}
+
+#carouselExampleControls {
+    height: 90vh;
+    width: 100%;
+}
+
+.carousel {
+    margin-top: 50px;
+}
+
+.carousel-inner {
+    height: 100%;
+}
+
+.carousel-caption {
+    color: rgb(51, 46, 46);
+    top: 50%;
+    text-align: left !important;
+}
+
+.vertical-center {
+    min-height: 100%;
+    /* Fallback for browsers do NOT support vh unit */
+    min-height: 100vh;
+    /* These two lines are counted as one :-)       */
+    display: flex;
+    align-items: center;
+}

@@ -1,0 +1,61 @@
+[{
+        "module_id": 1,
+        "question_text": "Выбери что-нить",
+        "image_url": "assets/img/modules/1.png",
+        "question_type": 1,
+        "answers": [{
+                "text": "Верный ответ",
+                "is_correct": true
+            },
+            {
+                "text": "Ошибка",
+                "is_correct": false
+            },
+            {
+                "text": "Не-не-не-не",
+                "is_correct": false
+            },
+            {
+                "text": "Вообще беда",
+                "is_correct": false
+            }
+        ]
+    },
+    {
+        "module_id": 1,
+        "question_text": "Выбери еще что-нить",
+        "image_url": "assets/img/modules/2.png",
+        "question_type": 2,
+        "answers": [{
+                "text": "Меня выбери!",
+                "is_correct": true
+            },
+            {
+                "text": "И меня!!!",
+                "is_correct": true
+            },
+            {
+                "text": "Не-не-не-не",
+                "is_correct": false
+            },
+            {
+                "text": "Вообще беда",
+                "is_correct": false
+            }
+        ]
+    },
+    {
+        "module_id": 1,
+        "question_text": "1000-7=",
+        "question_type": 1,
+        "answers": [{
+                "text": "993",
+                "is_correct": true
+            },
+            {
+                "text": "1337",
+                "is_correct": false
+            }
+        ]
+    }
+]

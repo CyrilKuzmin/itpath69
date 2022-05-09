@@ -81,3 +81,7 @@ func ErrUserNotFound(username string) error {
 func ErrModuleNotFound(id int) error {
 	return newErrorf(NotFoundErr, nil, "module %v not found", id)
 }
+
+func ErrTestNotFound(id string) error {
+	return newErrorf(NotFoundErr, nil, "test %v not found", id)
+}

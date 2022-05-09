@@ -14,7 +14,7 @@ import (
 type Service interface {
 	CreateUser(ctx context.Context, username, password string) (*User, error)
 	CheckUserPassword(ctx context.Context, username, password string) error
-	GetUserByName(ctx context.Context, username string) (*GetUserDTO, error)
+	GetUserByName(ctx context.Context, username string) (*UserDTO, error)
 	// users progress
 	OpenNewModules(ctx context.Context, username string) error
 	MarkModuleAsCompleted(ctx context.Context, username string, moduleId int) error
@@ -56,7 +56,7 @@ func (s *service) CheckUserPassword(ctx context.Context, username, password stri
 	return s.storage.CheckUserPassword(ctx, username, hash)
 }
 
-func (s *service) GetUserByName(ctx context.Context, username string) (*GetUserDTO, error) {
+func (s *service) GetUserByName(ctx context.Context, username string) (*UserDTO, error) {
 	user, err := s.storage.GetUserByName(ctx, username)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (s *service) GetUserByName(ctx context.Context, username string) (*GetUserD
 			completed++
 		}
 	}
-	return &GetUserDTO{
+	return &UserDTO{
 		User:             user,
 		ModulesOpened:    opened,
 		ModulesCompleted: completed,

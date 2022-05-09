@@ -14,6 +14,7 @@ import (
 	"github.com/CyrilKuzmin/itpath69/content"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/users"
 	"github.com/CyrilKuzmin/itpath69/store/mongostorage"
 	"github.com/CyrilKuzmin/itpath69/web"
@@ -42,9 +43,17 @@ func NewApp(conf *config.Config) *App {
 	us := users.NewService(st, log)
 	ms := module.NewService(st, log)
 	cs := comment.NewService(st, log)
-	webserver := web.NewWeb(log, session, us, ms, cs)
+	ts := tests.NewService(st, log)
+	qs, err := st.GetModuleQuestions(context.Background(), 1, 2)
+	if err != nil {
+		fmt.Println("error", err)
+	}
+	for _, q := range qs {
+		fmt.Println(q)
+	}
+	webserver := web.NewWeb(log, session, us, ms, cs, ts)
 	// init content manager
-	cm := content.NewContentManager(ms, log)
+	cm := content.NewContentManager(ms, ts, log)
 	// create App and init handlers/middlewares
 	s := &App{
 		config:         conf,

@@ -4,7 +4,7 @@ import "time"
 
 // User info and its opened modules
 type User struct {
-	Id           string                 `json:"id"`
+	Id           string                 `json:"id" bson:"_id"`
 	Username     string                 `json:"username"`
 	PasswordHash string                 `json:"password_hash"`
 	CreatedAt    time.Time              `json:"created_at"`
@@ -17,7 +17,7 @@ type ModuleProgress struct {
 	CompletedAt time.Time `json:"completed_at"`
 }
 
-type GetUserDTO struct {
+type UserDTO struct {
 	*User
 	ModulesOpened    int `json:"modules_opened"`
 	ModulesCompleted int `json:"modules_completed"`

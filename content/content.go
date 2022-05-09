@@ -7,6 +7,7 @@
 //    |  |  ∟ data.html
 //    |  ∟ part-<id>
 //    |	 ∟ data.html
+//    |	 ∟ questions.json
 //    ∟ module-<id>
 //    ...
 package content
@@ -20,24 +21,29 @@ import (
 	"os"
 
 	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 type ContentManager struct {
 	moduleService module.Service
+	testService   tests.Service
 	log           *zap.Logger
 	ModulesTotal  int
 }
 
-func NewContentManager(ms module.Service, log *zap.Logger) *ContentManager {
+func NewContentManager(ms module.Service, t tests.Service, log *zap.Logger) *ContentManager {
 	return &ContentManager{
 		moduleService: ms,
+		testService:   t,
 		log:           log,
 	}
 }
 
 func (cm *ContentManager) UpdateContentinStorage() {
 	var modules []module.Module
+	var qs []tests.Question
 	baseDir := "static/modules"
 	baseDirInfo, err := os.ReadDir(baseDir)
 	if err != nil {
@@ -46,8 +52,9 @@ func (cm *ContentManager) UpdateContentinStorage() {
 	for _, m := range baseDirInfo {
 		modulePath := fmt.Sprintf("%v/%v", baseDir, m.Name())
 		m := cm.readModule(modulePath)
+		moduleQs := cm.readQuestions(modulePath)
+		qs = append(qs, moduleQs...)
 		m.Data = make([]module.Part, 0)
-
 		moduleDirInfo, err := os.ReadDir(modulePath)
 		parts := make([]module.Part, 0)
 		if err != nil {
@@ -67,6 +74,11 @@ func (cm *ContentManager) UpdateContentinStorage() {
 	if err != nil {
 		log.Fatal("cannot insert modules", zap.Error(err))
 	}
+	// I don't want to re-generate new uuids for questions during the development
+	// err = cm.testService.SaveQuestions(context.Background(), qs)
+	// if err != nil {
+	// 	log.Fatal("cannot insert questions", zap.Error(err))
+	// }
 	cm.ModulesTotal = len(modules)
 }
 
@@ -102,4 +114,20 @@ func (cm *ContentManager) readPart(partDir string) module.Part {
 	dataValue, _ := io.ReadAll(data)
 	part.Data = string(dataValue)
 	return part
+}
+
+func (cm *ContentManager) readQuestions(moduleDir string) []tests.Question {
+	questions := make([]tests.Question, 0)
+	filename := fmt.Sprintf("%v/questions.json", moduleDir)
+	f, err := os.Open(filename)
+	defer f.Close()
+	if err != nil {
+		log.Fatal("cannot read test questions", zap.Error(err), zap.String("file", filename))
+	}
+	data, _ := io.ReadAll(f)
+	json.Unmarshal([]byte(data), &questions)
+	for i, _ := range questions {
+		questions[i].Id = uuid.NewString()
+	}
+	return questions
 }

@@ -14,7 +14,9 @@
                 <li><a class="nav-link scrollto" href="/">Главная</a></li>
                 <li><a class="nav-link scrollto" href="/#about">О сайте</a></li>
                 {{if .Username}}
-                <li><a class="nav-link" href="/lk">Личный кабинет</a></li> {{else}}
+                <li>
+                    <a class="nav-link scrollto" onclick="document.getElementById('logout-form').submit();">Выйти</a>
+                </li> {{else}}
                 <li><a class="nav-link" href="/login">Войти</a></li> {{end}}
 
             </ul>
@@ -22,13 +24,11 @@
         </nav>
         <!-- .navbar -->
         {{if .Username}}
-        <form role="form" method="POST" action="/logout">
-            <button type="submit" class="btn-getstarted">Выйти</button>
-        </form>
-        {{else}}
+        <a class="btn-getstarted" href="/lk">Личный кабинет</a> {{else}}
         <a class="btn-getstarted" href="/#register">Регистрация</a> {{end}}
 
     </div>
+    <form role="form" method="POST" action="/user/logout" id="logout-form"></form>
 </header>
 <!-- End Header -->
 

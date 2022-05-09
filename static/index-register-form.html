@@ -1,6 +1,5 @@
 {{ define "RegisterForm" }}
 
-<script src="assets/js/register.js"></script>
 
 <!-- ======= Register Section ======= -->
 <section id="register" class="contact">
@@ -20,7 +19,7 @@
                         </div>
 
                     </div>
-                    <form action="register" method="post" role="form" class="register-form" id="register-form">
+                    <form action="/user/register" method="post" role="form" class="register-form" id="register-form">
                         <div class="row">
                             <div class="col-md-6 form-group">
                                 <input type="text" class="form-control" autocomplete="username" name="username" id="name" placeholder="Имя пользователя" required pattern="[a-zA-Z0-9]+" minlength="4" maxlength="20">
@@ -56,6 +55,9 @@
 
         </div>
     </div>
+
+    <script src="assets/js/register.js"></script>
+
 </section>
 <!-- End Contact Section -->
 

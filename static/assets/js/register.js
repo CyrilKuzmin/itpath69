@@ -50,6 +50,7 @@
     });
 
     function register_form_submit(thisForm, action, formData) {
+        console.log("FUCK!")
         fetch(action, {
                 method: 'POST',
                 body: formData,
@@ -63,6 +64,7 @@
                 if (data.trim() == 'OK') {
                     thisForm.querySelector('.sent-message').classList.add('d-block');
                     thisForm.reset();
+                    return;
                 } else {
                     throw new Error(data ? data : 'Form submission failed and no error message returned from: ' + action);
                 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/users"
 	"github.com/brpaz/echozap"
 	"github.com/gorilla/sessions"
@@ -22,6 +23,7 @@ type Web struct {
 	userService    users.Service
 	moduleService  module.Service
 	commentService comment.Service
+	testsService   tests.Service
 	e              *echo.Echo
 }
 
@@ -29,13 +31,15 @@ func NewWeb(log *zap.Logger,
 	sessionStore sessions.Store,
 	us users.Service,
 	ms module.Service,
-	cs comment.Service) *Web {
+	cs comment.Service,
+	ts tests.Service) *Web {
 	w := &Web{
 		session:        sessionStore,
 		log:            log,
 		userService:    us,
 		moduleService:  ms,
 		commentService: cs,
+		testsService:   ts,
 	}
 	w.e = initEcho(log)
 	w.initHandlers()
@@ -79,18 +83,30 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 func (w *Web) initHandlers() {
 	w.e.Use(session.Middleware(w.session))
 	w.e.HTTPErrorHandler = customHTTPErrorHandler
-	// Unauthenticated routes
-	w.e.GET("/", w.indexHandler)
-	w.e.GET("/login", w.loginPageHandler)
-	w.e.POST("/logout", w.logoutHandler)
-	w.e.POST("/register", w.registerHandler)
-	w.e.POST("/login", w.loginHandler)
-	// restricted
-	w.e.GET("/lk", w.lkHandler)
-	w.e.GET("/module", w.moduleHandler)
+
+	// render pages
+	w.e.GET("/", w.indexHandler)          // render main page
+	w.e.GET("/login", w.loginPageHandler) // render login form page
+	w.e.GET("/lk", w.lkHandler)           // restricted render LK page with modules previews
+	w.e.GET("/module", w.moduleHandler)   // restricted render module page with comments
+	w.e.GET("/testing", w.testingHandler) // restricted render testing page
+
+	// User API
+	w.e.POST("/user/login", w.loginHandler)
+	w.e.POST("/user/logout", w.logoutHandler)
+	w.e.POST("/user/register", w.registerHandler)
+	w.e.GET("/user/tests", w.listTestsHandler)
+
+	// Comments API
+	w.e.GET("/comment", w.getCommentsHandler)
 	w.e.POST("/comment", w.newCommentHandler)
 	w.e.PUT("/comment", w.updateCommentHandler)
 	w.e.DELETE("/comment", w.deleteCommentHandler)
+
+	// Tests API
+	w.e.GET("/test", w.getTestHandler)
+	w.e.POST("/test", w.checkTestHandler)
+
 	// temp
 	w.e.GET("/more", w.giveMeModules)
 	w.e.GET("/complete", w.completeModule)

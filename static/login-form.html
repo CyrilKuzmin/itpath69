@@ -1,7 +1,5 @@
 {{ define "LoginForm" }}
 
-<script src="assets/js/login.js"></script>
-
 <!-- ======= Login Section ======= -->
 <section id="register" class="contact">
 
@@ -19,7 +17,7 @@
                         </div>
 
                     </div>
-                    <form action="login" method="post" role="form" class="login-form">
+                    <form action="/user/login" method="post" role="form" class="login-form">
                         <div class="row">
                             <div class="col-md-6 form-group">
                                 <input type="text" name="username" class="form-control" id="name" placeholder="Username" required>
@@ -43,6 +41,9 @@
 
         </div>
     </div>
+
+    <script src="assets/js/login.js"></script>
+
 </section>
 <!-- End Login Section -->
 
