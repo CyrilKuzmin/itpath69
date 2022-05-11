@@ -34,7 +34,7 @@ func (w *Web) listTestsHandler(c echo.Context) error {
 }
 
 type UserResult struct {
-	Result float32 `json:"result"`
+	Score float32 `json:"score"`
 }
 
 func (w *Web) checkTestHandler(c echo.Context) error {
@@ -43,14 +43,20 @@ func (w *Web) checkTestHandler(c echo.Context) error {
 	if username == "" {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
-	userAnswers := *&tests.Test{}
+	userAnswers := &tests.Test{}
 	err := json.NewDecoder(c.Request().Body).Decode(&userAnswers)
 	if err != nil {
 		return errBadRequest()
 	}
-	res, err := w.testsService.CheckTest(c.Request().Context(), userAnswers.Id, userAnswers.Questions)
+	score, err := w.testsService.CheckTest(c.Request().Context(), userAnswers.Id, userAnswers.Questions)
 	if err != nil {
 		return errInternal(err)
 	}
-	return c.JSON(http.StatusOK, UserResult{res})
+	if score > tests.DefaultPassThreshold {
+		err = w.userService.MarkModuleAsCompleted(c.Request().Context(), username, userAnswers.ModuleId)
+		if err != nil {
+			return errInternal(err)
+		}
+	}
+	return c.JSON(http.StatusOK, UserResult{score})
 }

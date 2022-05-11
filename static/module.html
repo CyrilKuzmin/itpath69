@@ -38,6 +38,7 @@
                             <li><strong>Открыт</strong>: {{ .OpenedAt }} </li>
                             {{ if .Completed }}
                             <li><strong>Завершен</strong>: {{ .CompletedAt }} </li> {{ end}}
+                            <li><a class="btn btn-success" href="/testing?id={{ .Module.Id }}">Пройти тест</a></li>
                         </ul>
                     </div>
                     <div class="module-description">

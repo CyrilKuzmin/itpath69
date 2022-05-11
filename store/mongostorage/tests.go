@@ -2,7 +2,6 @@ package mongostorage
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
 	"github.com/CyrilKuzmin/itpath69/store"
@@ -16,7 +15,6 @@ func (m *MongoStorage) GetTestByID(ctx context.Context, id string) (*tests.Test,
 		{"_id", id},
 	}).Decode(&res)
 	if err == mongo.ErrNoDocuments {
-		fmt.Println(id, res)
 		return res, store.ErrTestNotFound(id)
 	}
 	if err != nil {

@@ -44,13 +44,6 @@ func NewApp(conf *config.Config) *App {
 	ms := module.NewService(st, log)
 	cs := comment.NewService(st, log)
 	ts := tests.NewService(st, log)
-	qs, err := st.GetModuleQuestions(context.Background(), 1, 2)
-	if err != nil {
-		fmt.Println("error", err)
-	}
-	for _, q := range qs {
-		fmt.Println(q)
-	}
 	webserver := web.NewWeb(log, session, us, ms, cs, ts)
 	// init content manager
 	cm := content.NewContentManager(ms, ts, log)

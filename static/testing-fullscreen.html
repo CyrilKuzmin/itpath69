@@ -1,0 +1,13 @@
+{{ define "TestingFullScreenHead" }}
+
+<section id="testing-intro" class="hero-fullscreen d-flex align-items-center visible">
+    <div class="container d-flex flex-column align-items-center position-relative" data-aos="zoom-out">
+        <h2 id="score-result">Запустить тест?</h2>
+        <p id="score-details">Вы собираетесь запустить новый тест {{ if eq .Module 0 }}по всем модулям {{else}} по модулю #{{.Module}}{{end}}</p>
+        <div id="btn-start" class="d-flex">
+            <a onclick="start({{ .Module }})" class="btn-get-started">Начать</a>
+        </div>
+    </div>
+</section>
+
+{{ end }}

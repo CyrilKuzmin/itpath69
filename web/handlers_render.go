@@ -126,7 +126,14 @@ func (w *Web) testingHandler(c echo.Context) error {
 	if username == "" {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
+	// get ID from URI
+	idParam := c.QueryParam("id")
+	moduleId, err := strconv.Atoi(idParam)
+	if err != nil {
+		return errInternal(err)
+	}
 	return c.Render(http.StatusOK, "testing.html", map[string]interface{}{
 		"Username": username,
+		"Module":   moduleId,
 	})
 }

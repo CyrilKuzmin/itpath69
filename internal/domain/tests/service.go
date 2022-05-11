@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,6 +10,7 @@ import (
 
 const DefaultQuestionsAmount = 3
 const DefaultExpiraionTime = 24 * time.Hour
+const DefaultPassThreshold = float32(0.85)
 
 type Service interface {
 	GenerateTest(ctx context.Context, userId string, moduleId, amount int) (*Test, error)
@@ -35,13 +35,13 @@ func NewService(st Storage, log *zap.Logger) Service {
 func (s *service) GenerateTest(ctx context.Context, userId string, moduleId, amount int) (*Test, error) {
 	// moduleId == 0 - specific case, need to get questions for all opened modules
 	qs, err := s.storage.GetModuleQuestions(ctx, moduleId, amount)
-	fmt.Println(qs)
 	if err != nil {
 		return nil, err
 	}
 	test := Test{
 		Id:        uuid.NewString(),
 		UserId:    userId,
+		ModuleId:  moduleId,
 		CreatedAt: time.Now(),
 		ExpiredAt: time.Now().Add(DefaultExpiraionTime),
 		Questions: qs,
@@ -50,11 +50,9 @@ func (s *service) GenerateTest(ctx context.Context, userId string, moduleId, amo
 	if err != nil {
 		return nil, err
 	}
-	for i, q := range test.Questions {
-		fmt.Println(i, q)
-		for _, a := range q.Answers {
-			fmt.Println(a)
-			a.IsCorrect = false
+	for qId := range test.Questions {
+		for aId := range test.Questions[qId].Answers {
+			test.Questions[qId].Answers[aId].IsCorrect = false
 		}
 	}
 	return &test, nil
@@ -81,7 +79,8 @@ func (s *service) CheckTest(ctx context.Context, id string, userAnswers []*Quest
 			}
 		}
 	}
-	return res / float32(len(t.Questions)), nil
+	score := res / float32(len(t.Questions))
+	return score, nil
 }
 
 func (s *service) SaveQuestions(ctx context.Context, qs []Question) error {
@@ -100,7 +99,6 @@ func checkQuestion(orig, user *Question) float32 {
 }
 
 func checkSingleAnswer(orig, user *Question) float32 {
-	fmt.Println("single", orig, user)
 	for _, a := range orig.Answers {
 		for _, b := range user.Answers {
 			if a.Text == b.Text {
@@ -116,7 +114,6 @@ func checkSingleAnswer(orig, user *Question) float32 {
 }
 
 func checkMultiChoose(orig, user *Question) float32 {
-	fmt.Println("multi", orig, user)
 	correctAnswers := 0
 	for _, a := range orig.Answers {
 		if a.IsCorrect {
@@ -134,6 +131,5 @@ func checkMultiChoose(orig, user *Question) float32 {
 		}
 	}
 	res := (float32(userCorrect) / float32(correctAnswers))
-	fmt.Println(res)
 	return res
 }
