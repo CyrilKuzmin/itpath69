@@ -9,12 +9,7 @@
             "program": "${cwd}/cmd/",
             "cwd": "${cwd}",
             "env": {
-                "PG_PASSWORD": "0XbmGAHJQ2FwXFcl00OxexLvubaV0PGBX9mc28XKOeIn6ztbmDmloGvijX2eGcHp",
-                "PG_USER": "postgres",
-                "NSXV_IPSEC_LOCAL_CIDR": "10.24.21.0/24",
-                "NSXV_IPSEC_PEER_CIDR": "10.24.97.0/24",
-                "KAFKA_BROKERS": "localhost:29092",
-                "KAFKA_TOPIC": "network-cyril-requests"
+                "TEST": "cyril"
             }
         }
     ]
