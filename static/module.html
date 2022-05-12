@@ -17,7 +17,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <h2>{{ .Module.Name }}</h2>
                     <ol>
-                        <li><a href="/lk">Домой</a></li>
+                        <li><a href="/learn">Домой</a></li>
                         <li>{{ .Module.Name }}</li>
                     </ol>
                 </div>
@@ -38,7 +38,7 @@
                             <li><strong>Открыт</strong>: {{ .OpenedAt }} </li>
                             {{ if .Completed }}
                             <li><strong>Завершен</strong>: {{ .CompletedAt }} </li> {{ end}}
-                            <li><a class="btn btn-success" href="/testing?id={{ .Module.Id }}">Пройти тест</a></li>
+                            <li><a class="btn btn-success" href="/testing?module_id={{ .Module.Id }}">Пройти тест</a></li>
                         </ul>
                     </div>
                     <div class="module-description">

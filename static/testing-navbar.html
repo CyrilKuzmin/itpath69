@@ -6,13 +6,14 @@
         <a id="testing-logo" href="/" class="logo d-flex align-items-center scrollto me-auto me-lg-0 vilisble">
             <h1>itPath69<span>.</span></h1>
         </a>
-        <button id="testing-check-btn" class="btn btn-warning invisible">Завершить</button>
-        <div id="testing-answers-counter" class="logo invisible">0/0</div>
+        <button id="testing-check-btn" class="btn btn-warning d-none">Завершить</button>
+        <div id="testing-answers-counter" class="logo d-none">0/0</div>
         <nav id="navbar" class="navbar">
             <ul>
                 <li><a class="nav-link scrollto" href="/">Главная</a></li>
                 <li><a class="nav-link scrollto" href="/#about">О сайте</a></li>
                 {{if .Username}}
+                <li><a class="nav-link" href="/account">Аккаунт</a></li>
                 <li>
                     <a class="nav-link scrollto" onclick="document.getElementById('logout-form').submit();">Выйти</a>
                 </li> {{else}}
@@ -22,7 +23,7 @@
         </nav>
         <!-- .navbar -->
         {{if .Username}}
-        <a class="btn-getstarted" href="/lk">Личный кабинет</a> {{else}}
+        <a class="btn-getstarted" href="/learn">К модулям</a> {{else}}
         <a class="btn-getstarted" href="/#register">Регистрация</a> {{end}}
 
     </div>

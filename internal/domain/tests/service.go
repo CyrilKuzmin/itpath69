@@ -17,6 +17,7 @@ type Service interface {
 	GetTestByID(ctx context.Context, id string) (*Test, error)
 	GetTestsByUser(ctx context.Context, userId string) ([]*Test, error)
 	CheckTest(ctx context.Context, id string, userAnswers []*Question) (float32, error)
+	MarkTestExpired(ctx context.Context, id string) error
 	SaveQuestions(ctx context.Context, qs []Question) error
 }
 
@@ -63,7 +64,7 @@ func (s *service) GetTestByID(ctx context.Context, id string) (*Test, error) {
 }
 
 func (s *service) GetTestsByUser(ctx context.Context, userId string) ([]*Test, error) {
-	return nil, nil
+	return s.storage.GetTestsByUser(ctx, userId)
 }
 
 func (s *service) CheckTest(ctx context.Context, id string, userAnswers []*Question) (float32, error) {
@@ -81,6 +82,10 @@ func (s *service) CheckTest(ctx context.Context, id string, userAnswers []*Quest
 	}
 	score := res / float32(len(t.Questions))
 	return score, nil
+}
+
+func (s *service) MarkTestExpired(ctx context.Context, id string) error {
+	return s.storage.MarkTestExpired(ctx, id)
 }
 
 func (s *service) SaveQuestions(ctx context.Context, qs []Question) error {

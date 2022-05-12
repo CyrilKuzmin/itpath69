@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -23,7 +24,7 @@ func (w *Web) loginPageHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "login.html", map[string]interface{}{})
 }
 
-func (w *Web) lkHandler(c echo.Context) error {
+func (w *Web) learnHandler(c echo.Context) error {
 	// redirect to login page if no session found
 	username := w.getUsernameIfAny(c)
 	if username == "" {
@@ -47,7 +48,7 @@ func (w *Web) lkHandler(c echo.Context) error {
 		}
 	}
 	// render all these structs
-	return c.Render(http.StatusOK, "lk.html", map[string]interface{}{
+	return c.Render(http.StatusOK, "learn.html", map[string]interface{}{
 		"User":             user,
 		"Username":         user.Username, // for navbar
 		"Rows":             modulesMeta,
@@ -127,13 +128,17 @@ func (w *Web) testingHandler(c echo.Context) error {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
 	// get ID from URI
-	idParam := c.QueryParam("id")
+	idParam := c.QueryParam("module_id")
 	moduleId, err := strconv.Atoi(idParam)
 	if err != nil {
 		return errInternal(err)
 	}
+	testId := c.QueryParam("test_id")
+	test, err := w.testsService.GetTestByID(c.Request().Context(), testId)
+	fmt.Println(test)
 	return c.Render(http.StatusOK, "testing.html", map[string]interface{}{
 		"Username": username,
 		"Module":   moduleId,
+		"Test":     test,
 	})
 }

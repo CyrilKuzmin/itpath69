@@ -52,7 +52,7 @@
             })
             .then(function(response) {
                 if (response.ok) {
-                    window.location.href = "/lk";
+                    window.location.href = "/learn";
                 } else {
                     return response.text();
                 }

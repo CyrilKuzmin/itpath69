@@ -25,7 +25,13 @@ func (w *Web) getTestHandler(c echo.Context) error {
 	if err != nil {
 		return errInternal(err)
 	}
-	test, err := w.testsService.GenerateTest(c.Request().Context(), user.Id, moduleId, tests.DefaultQuestionsAmount)
+	testId := c.QueryParam("test_id")
+	var test *tests.Test
+	if testId != "" {
+		test, err = w.testsService.GetTestByID(c.Request().Context(), testId)
+	} else {
+		test, err = w.testsService.GenerateTest(c.Request().Context(), user.Id, moduleId, tests.DefaultQuestionsAmount)
+	}
 	return c.JSON(http.StatusOK, test)
 }
 
@@ -43,20 +49,25 @@ func (w *Web) checkTestHandler(c echo.Context) error {
 	if username == "" {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
-	userAnswers := &tests.Test{}
-	err := json.NewDecoder(c.Request().Body).Decode(&userAnswers)
+	userTestData := &tests.Test{}
+	err := json.NewDecoder(c.Request().Body).Decode(&userTestData)
 	if err != nil {
 		return errBadRequest()
 	}
-	score, err := w.testsService.CheckTest(c.Request().Context(), userAnswers.Id, userAnswers.Questions)
+	score, err := w.testsService.CheckTest(c.Request().Context(), userTestData.Id, userTestData.Questions)
 	if err != nil {
 		return errInternal(err)
 	}
 	if score > tests.DefaultPassThreshold {
-		err = w.userService.MarkModuleAsCompleted(c.Request().Context(), username, userAnswers.ModuleId)
+		// move it to service
+		err = w.userService.MarkModuleAsCompleted(c.Request().Context(), username, userTestData.ModuleId)
 		if err != nil {
 			return errInternal(err)
 		}
+	}
+	err = w.testsService.MarkTestExpired(c.Request().Context(), userTestData.Id)
+	if err != nil {
+		return errInternal(err)
 	}
 	return c.JSON(http.StatusOK, UserResult{score})
 }

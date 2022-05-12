@@ -2,6 +2,7 @@ package mongostorage
 
 import (
 	"context"
+	"time"
 
 	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
 	"github.com/CyrilKuzmin/itpath69/store"
@@ -24,7 +25,10 @@ func (m *MongoStorage) GetTestByID(ctx context.Context, id string) (*tests.Test,
 }
 func (m *MongoStorage) GetTestsByUser(ctx context.Context, userId string) ([]*tests.Test, error) {
 	res := make([]*tests.Test, 0)
-	cur, err := m.tests.Find(ctx, bson.D{{"userid", userId}})
+	cur, err := m.tests.Find(ctx, bson.D{
+		{"userid", userId},
+		{"expiredat", bson.D{{"$gt", time.Now()}}},
+	})
 	if err == mongo.ErrNoDocuments {
 		return res, nil
 	}
@@ -75,4 +79,16 @@ func (m *MongoStorage) SaveQuestions(ctx context.Context, qs []tests.Question) e
 		items = append(items, q)
 	}
 	return m.saveStuff(ctx, m.questions, items)
+}
+
+func (m *MongoStorage) MarkTestExpired(ctx context.Context, id string) error {
+	_, err := m.tests.UpdateByID(ctx, id, bson.D{
+		{"$set", bson.M{
+			"expiredat": time.Now(),
+		}},
+	})
+	if err != nil {
+		return store.ErrInternal(err)
+	}
+	return nil
 }

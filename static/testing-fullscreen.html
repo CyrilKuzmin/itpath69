@@ -2,11 +2,20 @@
 
 <section id="testing-intro" class="hero-fullscreen d-flex align-items-center visible">
     <div class="container d-flex flex-column align-items-center position-relative" data-aos="zoom-out">
+        {{ if .Test }}
+        <h2 id="score-result">Возобновить тест?</h2>
+        <p id="score-details">Вы собираетесь возобновить тест от {{ .Test.CreatedAt }} {{ if eq .Module 0 }}по всем модулям {{else}} по модулю #{{.Module}}{{end}}</p>
+        <div id="btn-start" class="d-flex">
+            <a onclick="restart({{ .Test.Id }},{{ .Module }})" class="btn-get-started">Начать</a>
+        </div>
+        {{ else }}
         <h2 id="score-result">Запустить тест?</h2>
         <p id="score-details">Вы собираетесь запустить новый тест {{ if eq .Module 0 }}по всем модулям {{else}} по модулю #{{.Module}}{{end}}</p>
         <div id="btn-start" class="d-flex">
-            <a onclick="start({{ .Module }})" class="btn-get-started">Начать</a>
+            <a onclick="new_start({{ .Module }})" class="btn-get-started">Начать</a>
         </div>
+        {{ end }}
+
     </div>
 </section>
 

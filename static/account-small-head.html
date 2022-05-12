@@ -1,9 +1,9 @@
-{{ define "LearnSmallHead" }}
+{{ define "AccountSmallHead" }}
 
 <section id="hero-static" class="hero-static d-flex align-items-center">
     <div class="container d-flex flex-column justify-content-center align-items-center text-center position-relative" data-aos="zoom-out">
         <h2>Добро пожаловать, {{ .User.Username }}</h2>
-        <p>Открыто модулей: {{ .ModulesOpened}} / {{ .ModulesTotal }}<br>Завершено: {{ .ModulesCompleted}}</p>
+        <p>Ваш ID: {{ .User.User.Id}}<br>Время регистрации: {{ .User.User.CreatedAt }}</p>
     </div>
 </section>
 

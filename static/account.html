@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{{ template "HeaderContent" . }}
+
+<body>
+
+    {{ template "NavbarContent" . }}
+
+    <main id="main">
+        {{ template "AccountSmallHead" . }}
+
+        <section id="account_details">
+            {{ if .Tests }}
+            <p>Активные тесты:</p>
+            <ul>
+                {{ range $test := .Tests }}
+                <li>
+                    <a href="/testing?test_id={{$test.Id}}&module_id={{$test.ModuleId}}">Тест от {{ $test.CreatedAt }} по {{ if eq $test.ModuleId 0 }}всем модулям {{else}}модулю #{{$test.ModuleId}}{{end}}</a>
+                </li>
+                {{ end }}
+            </ul>
+            {{ end }}
+        </section>
+
+    </main>
+    <!-- End #main -->
+
+    {{ template "FooterContent" . }}
+
+</body>
+
+</html>

@@ -16,19 +16,23 @@
 var AnswersCounter = 0
 var TotalQuestions = 0
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function toogleCarouselVisibility(makeVisible) {
     if (makeVisible) {
         document.getElementById("btn-start").remove() // we'll not shwo this BTN again
         document.getElementById("testing-logo").classList.add("d-none");
         document.getElementById("testing-intro").classList.add("d-none");
-        document.getElementById("testing-check-btn").classList.remove("invisible");
-        document.getElementById("testing-answers-counter").classList.remove("invisible");
+        document.getElementById("testing-check-btn").classList.remove("d-none");
+        document.getElementById("testing-answers-counter").classList.remove("d-none");
         document.getElementById("testing").classList.remove("d-none");
     } else {
         document.getElementById("testing-logo").classList.remove("d-none");
         document.getElementById("testing-intro").classList.remove("d-none");
-        document.getElementById("testing-check-btn").classList.add("invisible");
-        document.getElementById("testing-answers-counter").classList.add("invisible");
+        document.getElementById("testing-check-btn").classList.add("d-none");
+        document.getElementById("testing-answers-counter").classList.add("d-none");
         document.getElementById("testing").classList.add("d-none");
     }
 }
@@ -136,7 +140,6 @@ function checkboxChanged(event, test_id, item_id, store) {
             updateCounter()
         } else {
             myAnswers = JSON.parse(answers)
-            console.log(myAnswers, myAnswers.length)
             if (myAnswers.length == 0) {
                 AnswersCounter++
                 updateCounter()
@@ -145,7 +148,6 @@ function checkboxChanged(event, test_id, item_id, store) {
             store.setItem(storageItem, JSON.stringify(myAnswers))
         }
     } else {
-        console.log("remove amswer")
         answers = store.getItem(storageItem)
         if (answers == null) {
             return
@@ -210,7 +212,6 @@ function checkResults(event, test_id, store) {
         store.removeItem(storageAnswer)
     }
     store.setItem(storageTest, JSON.stringify(test))
-    console.log(test)
     fetch('/test', {
             method: 'POST', // or 'PUT' ?
             headers: {
@@ -220,7 +221,6 @@ function checkResults(event, test_id, store) {
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Score:', data.score);
             toogleCarouselVisibility(false)
             displayScore(data.score)
             store.removeItem(storageTest)
@@ -230,13 +230,39 @@ function checkResults(event, test_id, store) {
         });
 }
 
-function start(moduleId) {
+function restore_answers_from_storage(store, test_id) {
+    storageTest = `test-${test_id}-body`
+    test_body = store.getItem(storageTest)
+    if (test_body == null || test_body == "") {
+        console.log("test is missing. WTF?")
+        return
+    }
+    test = JSON.parse(test_body)
+    for (var q_id = 0; q_id < test.questions.length; q_id++) {
+        storageAnswer = `test-${test_id}-ans-${q_id}`
+        raw_answer = store.getItem(storageAnswer)
+        if (raw_answer == null || raw_answer == "") {
+            continue
+        }
+        chosen = JSON.parse(raw_answer)
+        if (chosen.length > 0) {
+            AnswersCounter++
+        }
+        for (var a_id = 0; a_id < test.questions[q_id].answers.length; a_id++) {
+            label_text = document.getElementById(`q-${q_id}-a-${a_id}-label`).innerHTML
+            if (chosen.indexOf(label_text) > -1) {
+                document.getElementById(`q-${q_id}-a-${a_id}`).checked = true;
+            }
+        }
+    }
+    updateCounter()
+}
+
+function start(store, test_id, module_id) {
     toogleCarouselVisibility(true);
-    test_id = ""
     slides = ""
     slide_indicators = ""
-    testsStorage = window.localStorage;
-    $.getJSON('test?module_id=' + moduleId, function(data) {
+    $.getJSON(`test?module_id=${module_id}&test_id=${test_id}`, function(data) {
         test_id = data.id
             // Generating slides and bar HTML based on JSON received
         TotalQuestions = data.questions.length
@@ -250,18 +276,28 @@ function start(moduleId) {
         document.getElementById("q0").classList.add("active");
         document.getElementById("q0-indic").classList.add("active");
         // save test to storage
-        testsStorage.setItem(`test-${test_id}-body`, JSON.stringify(data))
+        store.setItem(`test-${test_id}-body`, JSON.stringify(data))
             // event listeneres on checkboxes and radios
         document.querySelectorAll('.answer-checkbox').forEach(item => {
-            item.addEventListener('change', event => checkboxChanged(event, test_id, item.id, testsStorage))
+            item.addEventListener('change', event => checkboxChanged(event, test_id, item.id, store))
         })
         document.querySelectorAll('.answer-radio').forEach(item => {
-            item.addEventListener('click', event => radioClicked(event, test_id, item.id, testsStorage))
+            item.addEventListener('click', event => radioClicked(event, test_id, item.id, store))
         })
         updateCounter()
             // event listener for check button
-        document.getElementById('testing-check-btn').addEventListener('click', event => checkResults(event, test_id, testsStorage))
+        document.getElementById('testing-check-btn').addEventListener('click', event => checkResults(event, test_id, store))
+            // maybe we already have some answers (restart case)
+        restore_answers_from_storage(store, test_id)
     });
 }
 
-function restart(test_id) { console.log(test_id) }
+function new_start(module_id) {
+    testsStorage = window.localStorage;
+    start(testsStorage, "", module_id)
+}
+
+function restart(test_id, module_id) {
+    testsStorage = window.localStorage;
+    start(testsStorage, test_id, module_id)
+}

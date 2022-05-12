@@ -1,4 +1,4 @@
-{{ define "NavbarContent"}}
+{{ define "NavbarContent" }}
 
 <!-- ======= Header ======= -->
 <header id="header" class="header fixed-top" data-scrollto-offset="0">
@@ -14,8 +14,9 @@
                 <li><a class="nav-link scrollto" href="/">Главная</a></li>
                 <li><a class="nav-link scrollto" href="/#about">О сайте</a></li>
                 {{if .Username}}
+                <li><a class="nav-link" href="/account">Аккаунт</a></li>
                 <li>
-                    <a class="nav-link scrollto" onclick="document.getElementById('logout-form').submit();">Выйти</a>
+                    <a class="nav-link scrollto" onclick="document.getElementById( 'logout-form').submit();">Выйти</a>
                 </li> {{else}}
                 <li><a class="nav-link" href="/login">Войти</a></li> {{end}}
 
@@ -24,7 +25,7 @@
         </nav>
         <!-- .navbar -->
         {{if .Username}}
-        <a class="btn-getstarted" href="/lk">Личный кабинет</a> {{else}}
+        <a class="btn-getstarted" href="/learn">К модулям</a> {{else}}
         <a class="btn-getstarted" href="/#register">Регистрация</a> {{end}}
 
     </div>

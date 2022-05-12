@@ -87,9 +87,10 @@ func (w *Web) initHandlers() {
 	// render pages
 	w.e.GET("/", w.indexHandler)          // render main page
 	w.e.GET("/login", w.loginPageHandler) // render login form page
-	w.e.GET("/lk", w.lkHandler)           // restricted render LK page with modules previews
+	w.e.GET("/learn", w.learnHandler)     // restricted render LK page with modules previews
 	w.e.GET("/module", w.moduleHandler)   // restricted render module page with comments
 	w.e.GET("/testing", w.testingHandler) // restricted render testing page
+	w.e.GET("/account", w.accountHandler) // restricted render account page
 
 	// User API
 	w.e.POST("/user/login", w.loginHandler)
@@ -106,10 +107,6 @@ func (w *Web) initHandlers() {
 	// Tests API
 	w.e.GET("/test", w.getTestHandler)
 	w.e.POST("/test", w.checkTestHandler)
-
-	// temp
-	w.e.GET("/more", w.giveMeModules)
-	w.e.GET("/complete", w.completeModule)
 }
 
 func (w *Web) Start(addr string) error {
