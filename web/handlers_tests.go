@@ -1,10 +1,11 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
+	"github.com/CyrilKuzmin/itpath69/internal/service"
 	"github.com/labstack/echo/v4"
 )
 
@@ -21,10 +22,11 @@ func (w *Web) getTestHandler(c echo.Context) error {
 		return errInternal(err)
 	}
 	testId := c.QueryParam("test_id")
-	var test *tests.Test
+	var test *service.TestDTO
 	if testId != "" {
 		test, err = w.srv.GetTestByID(c.Request().Context(), testId, true)
 	} else {
+		fmt.Println("creating new test from server GET /test")
 		test, err = w.srv.CreateNewTest(c.Request().Context(), username, moduleId)
 	}
 	return c.JSON(http.StatusOK, test)

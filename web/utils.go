@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
+	"github.com/CyrilKuzmin/itpath69/internal/service"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 )
@@ -48,7 +48,7 @@ func (w *Web) deleteUserSession(c echo.Context, sess *sessions.Session) {
 	})
 }
 
-func shiftMetas(in []module.ModuleDTO) {
+func shiftMetas(in []service.ModuleDTO) {
 	for in[len(in)-ModulesPerRow].Id != 1 {
 		for k := 0; k < ModulesPerRow; k++ {
 			less := in[len(in)-1]

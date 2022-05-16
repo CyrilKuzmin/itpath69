@@ -1,16 +1,12 @@
 package module
 
-import (
-	"html/template"
-
-	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
-)
-
 // Module contains metadata of module and list of its Parts (below)
 type Module struct {
-	Id   int        `json:"id" bson:"_id"`
-	Meta ModuleMeta `json:"meta"`
-	Data []Part     `json:"parts"`
+	Id       int        `json:"id" bson:"_id"`
+	CourseID string     `json:"course_id"`
+	StageID  int        `json:"stage_id"`
+	Meta     ModuleMeta `json:"meta"`
+	Data     []Part     `json:"parts"`
 }
 
 type ModuleMeta struct {
@@ -27,18 +23,4 @@ type ModuleMeta struct {
 type Part struct {
 	Id   int    `json:"id"`
 	Data string `json:"data"`
-}
-
-// ModulePartDTO is used for rendering
-type ModulePartDTO struct {
-	Id       int
-	ModuleId int // comment form rendering bug
-	Data     template.HTML
-	Comments []*comment.CommentDTO
-}
-
-type ModuleDTO struct {
-	ModuleMeta
-	IsCompleted bool `json:"completed"`
-	Data        []ModulePartDTO
 }

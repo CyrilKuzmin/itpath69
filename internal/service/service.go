@@ -17,23 +17,23 @@ import (
 type Service interface {
 	// User
 	CreateUser(ctx context.Context, username, password string) (*users.User, error)
-	GetUserByName(ctx context.Context, username string) (*users.UserDTO, error)
+	GetUserByName(ctx context.Context, username string) (*UserDTO, error)
 	CheckUserPassword(ctx context.Context, username, password string) error
 
 	// Modules
-	GetModuleForUser(ctx context.Context, user *users.UserDTO, moduleId int) (*module.ModuleDTO, error)
-	ModulesPreview(ctx context.Context, user *users.UserDTO, amount int) ([]module.ModuleDTO, error)
+	GetModuleForUser(ctx context.Context, user *UserDTO, moduleId int) (*ModuleDTO, error)
+	ModulesPreview(ctx context.Context, user *UserDTO, amount int) ([]ModuleDTO, error)
 
 	// Tests
-	CreateNewTest(ctx context.Context, userId string, moduleId int) (*tests.Test, error)
-	GetTestByID(ctx context.Context, id string, hideAnswers bool) (*tests.Test, error)
-	ListTestsByUser(ctx context.Context, userId string) ([]*tests.Test, error)
-	CheckTest(ctx context.Context, username string, userData io.Reader) (*tests.UserResult, error)
+	CreateNewTest(ctx context.Context, userId string, moduleId int) (*TestDTO, error)
+	GetTestByID(ctx context.Context, id string, hideAnswers bool) (*TestDTO, error)
+	ListTestsByUser(ctx context.Context, userId string) ([]*TestDTO, error)
+	CheckTest(ctx context.Context, username string, userData io.Reader) (*TestResultDTO, error)
 
 	//Comments
-	CreateComment(ctx context.Context, username, text string, module, part int) (*comment.CommentDTO, error)
-	ListCommentsByModule(ctx context.Context, username string, module int) ([]*comment.CommentDTO, error)
-	UpdateComment(ctx context.Context, username, id, text string) (*comment.CommentDTO, error)
+	CreateComment(ctx context.Context, username, text string, module, part int) (*CommentDTO, error)
+	ListCommentsByModule(ctx context.Context, username string, module int) ([]*CommentDTO, error)
+	UpdateComment(ctx context.Context, username, id, text string) (*CommentDTO, error)
 	DeleteCommentByID(ctx context.Context, username, id string) error
 }
 
@@ -64,29 +64,61 @@ func NewService(log *zap.Logger, s Storage) Service {
 // simple functions for rendering
 
 // GetUserByName
-func (s *service) GetUserByName(ctx context.Context, username string) (*users.UserDTO, error) {
-	return s.us.GetUserByName(ctx, username)
-}
-
-func (s *service) ListTestsByUser(ctx context.Context, userId string) ([]*tests.Test, error) {
-	return s.ts.ListTestsByUser(ctx, userId)
-}
-
-func (s *service) ListCommentsByModule(ctx context.Context, username string, module int) ([]*comment.CommentDTO, error) {
-	// check if IDs are valid and allowed
+func (s *service) GetUserByName(ctx context.Context, username string) (*UserDTO, error) {
 	user, err := s.us.GetUserByName(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	opened := len(user.Modules)
+	completed := 0
+	for _, mp := range user.Modules {
+		if !mp.CompletedAt.IsZero() {
+			completed++
+		}
+	}
+	return &UserDTO{
+		User:             user,
+		ModulesOpened:    opened,
+		ModulesCompleted: completed,
+		ModulesTotal:     8, // will be fixed when course will be implemented
+	}, nil
+}
+
+func (s *service) ListTestsByUser(ctx context.Context, userId string) ([]*TestDTO, error) {
+	tests, err := s.ts.ListTestsByUser(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*TestDTO, len(tests))
+	for i, t := range tests {
+		res[i] = testToDTO(t)
+	}
+	return res, nil
+}
+
+func (s *service) ListCommentsByModule(ctx context.Context, username string, module int) ([]*CommentDTO, error) {
+	// check if IDs are valid and allowed
+	user, err := s.GetUserByName(ctx, username)
 	if err != nil {
 		return nil, err
 	}
 	if module > user.ModulesOpened {
 		return nil, errModuleNotAllowed(module)
 	}
-	return s.cs.ListCommentsByModule(ctx, username, module)
+	comments, err := s.cs.ListCommentsByModule(ctx, username, module)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*CommentDTO, len(comments))
+	for i, c := range comments {
+		res[i] = commentToDTO(c)
+	}
+	return res, nil
 }
 
-func (s *service) CreateComment(ctx context.Context, username, text string, module, part int) (*comment.CommentDTO, error) {
+func (s *service) CreateComment(ctx context.Context, username, text string, module, part int) (*CommentDTO, error) {
 	// check if IDs are valid and allowed
-	user, err := s.us.GetUserByName(ctx, username)
+	user, err := s.GetUserByName(ctx, username)
 	if err != nil {
 		return nil, err
 	}
@@ -100,11 +132,19 @@ func (s *service) CreateComment(ctx context.Context, username, text string, modu
 	if part > len(m.Data) {
 		return nil, errPartNotExists(part)
 	}
-	return s.cs.CreateComment(ctx, username, text, module, part)
+	c, err := s.cs.CreateComment(ctx, username, text, module, part)
+	if err != nil {
+		return nil, err
+	}
+	return commentToDTO(c), nil
 }
 
-func (s *service) UpdateComment(ctx context.Context, username, id, text string) (*comment.CommentDTO, error) {
-	return s.cs.UpdateComment(ctx, username, id, text)
+func (s *service) UpdateComment(ctx context.Context, username, id, text string) (*CommentDTO, error) {
+	c, err := s.cs.UpdateComment(ctx, username, id, text)
+	if err != nil {
+		return nil, err
+	}
+	return commentToDTO(c), err
 }
 
 func (s *service) DeleteCommentByID(ctx context.Context, username, id string) error {
@@ -118,17 +158,20 @@ func (s *service) CheckUserPassword(ctx context.Context, username, password stri
 	return s.us.CheckUserPassword(ctx, username, password)
 }
 
-func (s *service) CheckTest(ctx context.Context, username string, userData io.Reader) (*tests.UserResult, error) {
-	userTestData := &tests.Test{}
+func (s *service) CheckTest(ctx context.Context, username string, userData io.Reader) (*TestResultDTO, error) {
+	userTestData := &TestDTO{}
 	err := json.NewDecoder(userData).Decode(&userTestData)
 	if err != nil {
 		return nil, err
 	}
-	user, err := s.us.GetUserByName(ctx, username)
+	user, err := s.GetUserByName(ctx, username)
 	if err != nil {
 		return nil, err
 	}
-	score, err := s.ts.CheckTest(ctx, userTestData.Id, userTestData.Questions)
+	fmt.Println(userTestData.Questions[0].Answers)
+	fmt.Println(userTestData.Questions[1].Answers)
+	fmt.Println(userTestData.Questions[2].Answers)
+	score, err := s.ts.CheckTest(ctx, userTestData.Id, qDtoToModel(userTestData.Questions))
 	if err != nil {
 		return nil, err
 	}
@@ -141,6 +184,7 @@ func (s *service) CheckTest(ctx context.Context, username string, userData io.Re
 		}
 		isPassed = true
 	}
+	// add logic for opening new modules here
 	if user.ModulesOpened < 8 { // fix it
 		err = s.us.OpenNewModules(ctx, username, 4)
 		if err != nil {
@@ -152,14 +196,14 @@ func (s *service) CheckTest(ctx context.Context, username string, userData io.Re
 	if err != nil {
 		return nil, err
 	}
-	return &tests.UserResult{
+	return &TestResultDTO{
 		Score:    score,
 		IsPassed: isPassed,
 	}, nil
 }
 
-func (s *service) CreateNewTest(ctx context.Context, username string, moduleId int) (*tests.Test, error) {
-	user, err := s.us.GetUserByName(ctx, username)
+func (s *service) CreateNewTest(ctx context.Context, username string, moduleId int) (*TestDTO, error) {
+	user, err := s.GetUserByName(ctx, username)
 	if err != nil {
 		return nil, err
 	}
@@ -170,14 +214,22 @@ func (s *service) CreateNewTest(ctx context.Context, username string, moduleId i
 	if err != nil {
 		return nil, err
 	}
-	return s.ts.CreateNewTest(ctx, user.Id, moduleId, module.Meta.TestQuestionsAmount)
+	test, err := s.ts.CreateNewTest(ctx, user.Id, moduleId, module.Meta.TestQuestionsAmount)
+	if err != nil {
+		return nil, err
+	}
+	return testToDTO(test), err
 }
 
-func (s *service) GetTestByID(ctx context.Context, id string, hideAnswers bool) (*tests.Test, error) {
-	return s.ts.GetTestByID(ctx, id, hideAnswers)
+func (s *service) GetTestByID(ctx context.Context, id string, hideAnswers bool) (*TestDTO, error) {
+	test, err := s.ts.GetTestByID(ctx, id, hideAnswers)
+	if err != nil {
+		return nil, err
+	}
+	return testToDTO(test), err
 }
 
-func (s *service) GetModuleForUser(ctx context.Context, user *users.UserDTO, moduleId int) (*module.ModuleDTO, error) {
+func (s *service) GetModuleForUser(ctx context.Context, user *UserDTO, moduleId int) (*ModuleDTO, error) {
 	if moduleId > len(user.Modules) {
 		return nil, errModuleNotAllowed(moduleId)
 	}
@@ -187,39 +239,39 @@ func (s *service) GetModuleForUser(ctx context.Context, user *users.UserDTO, mod
 		return nil, err
 	}
 	// list comments for module
-	cmts, err := s.cs.ListCommentsByModule(ctx, user.Username, moduleId)
+	cmts, err := s.ListCommentsByModule(ctx, user.Username, moduleId)
 	if err != nil {
 		return nil, err
 	}
-	comments := make(map[int][]*comment.CommentDTO)
+	comments := make(map[int][]*CommentDTO)
 	for _, c := range cmts {
 		comments[c.PartId] = append(comments[c.PartId], c)
 	}
 	// need to convert string into template.HTML and add comments
-	data := make([]module.ModulePartDTO, len(mod.Data))
+	data := make([]ModulePartDTO, len(mod.Data))
 	for i, p := range mod.Data {
-		data[i] = module.ModulePartDTO{
+		data[i] = ModulePartDTO{
 			Id:       p.Id,
 			Data:     template.HTML(p.Data),
 			Comments: comments[p.Id],
 			ModuleId: mod.Id,
 		}
 	}
-	return &module.ModuleDTO{
-		ModuleMeta:  mod.Meta,
-		IsCompleted: !user.Modules[moduleId].CompletedAt.IsZero(),
-		Data:        data,
+	return &ModuleDTO{
+		ModuleMetaDTO: moduleMetaToDTO(&mod.Meta),
+		IsCompleted:   !user.Modules[moduleId].CompletedAt.IsZero(),
+		Data:          data,
 	}, nil
 }
 
-func (s *service) ModulesPreview(ctx context.Context, user *users.UserDTO, amount int) ([]module.ModuleDTO, error) {
+func (s *service) ModulesPreview(ctx context.Context, user *UserDTO, amount int) ([]ModuleDTO, error) {
 	modules, err := s.ms.ListOpenModulesMeta(ctx, amount)
 	if err != nil {
 		return nil, err
 	}
-	res := make([]module.ModuleDTO, len(modules))
+	res := make([]ModuleDTO, len(modules))
 	for i, m := range modules {
-		res[i].ModuleMeta = m
+		res[i].ModuleMetaDTO = moduleMetaToDTO(&m)
 		if !user.Modules[m.Id].CompletedAt.IsZero() {
 			res[i].IsCompleted = true
 		}

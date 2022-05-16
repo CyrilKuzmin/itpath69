@@ -1,11 +1,10 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
+	"github.com/CyrilKuzmin/itpath69/internal/service"
 	"github.com/labstack/echo/v4"
 )
 
@@ -45,13 +44,11 @@ func (w *Web) learnHandler(c echo.Context) error {
 	if len(metas)%ModulesPerRow != 0 {
 		rowsNum++
 	}
-	fmt.Println("rows total", rowsNum, "metas", len(metas))
-	rows := make([][]module.ModuleDTO, rowsNum)
+	rows := make([][]service.ModuleDTO, rowsNum)
 	for i := 0; i < rowsNum; i++ {
 		row := metas[i*ModulesPerRow : i*ModulesPerRow+ModulesPerRow]
 		rows[i] = row
 	}
-	fmt.Println(" HERE", rows[0][1].Id)
 	// render all these structs
 	return c.Render(http.StatusOK, "learn.html", map[string]interface{}{
 		"User":             user,

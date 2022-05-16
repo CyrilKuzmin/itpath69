@@ -8,13 +8,11 @@ import (
 	"go.uber.org/zap"
 )
 
-const formatString = "02 Jan 06 15:04 MST"
-
 type Service interface {
-	CreateComment(ctx context.Context, user, text string, module, part int) (*CommentDTO, error)
-	UpdateComment(ctx context.Context, user, id, text string) (*CommentDTO, error)
+	CreateComment(ctx context.Context, user, text string, module, part int) (*Comment, error)
+	UpdateComment(ctx context.Context, user, id, text string) (*Comment, error)
 	DeleteCommentByID(ctx context.Context, user, id string) error
-	ListCommentsByModule(ctx context.Context, user string, module int) ([]*CommentDTO, error)
+	ListCommentsByModule(ctx context.Context, user string, module int) ([]*Comment, error)
 }
 
 type service struct {
@@ -29,7 +27,7 @@ func NewService(st Storage, log *zap.Logger) Service {
 	}
 }
 
-func (s *service) CreateComment(ctx context.Context, user, text string, module, part int) (*CommentDTO, error) {
+func (s *service) CreateComment(ctx context.Context, user, text string, module, part int) (*Comment, error) {
 	c := &Comment{
 		Id:         uuid.NewString(),
 		User:       user,
@@ -42,9 +40,9 @@ func (s *service) CreateComment(ctx context.Context, user, text string, module, 
 	if err != nil {
 		return nil, err
 	}
-	return getCommentDTO(c), nil
+	return c, nil
 }
-func (s *service) UpdateComment(ctx context.Context, user, id, text string) (*CommentDTO, error) {
+func (s *service) UpdateComment(ctx context.Context, user, id, text string) (*Comment, error) {
 	c, err := s.storage.GetCommentByID(ctx, user, id)
 	if err != nil {
 		return nil, err
@@ -55,29 +53,12 @@ func (s *service) UpdateComment(ctx context.Context, user, id, text string) (*Co
 	if err != nil {
 		return nil, err
 	}
-	return getCommentDTO(c), nil
+	return c, nil
 }
 func (s *service) DeleteCommentByID(ctx context.Context, user, id string) error {
 	return s.storage.DeleteCommentByID(ctx, id)
 }
-func (s *service) ListCommentsByModule(ctx context.Context, user string, module int) ([]*CommentDTO, error) {
-	comments, err := s.storage.ListCommentsByModule(ctx, user, module)
-	if err != nil {
-		return nil, err
-	}
-	res := make([]*CommentDTO, len(comments))
-	for i, c := range comments {
-		res[i] = getCommentDTO(c)
-	}
-	return res, nil
-}
+func (s *service) ListCommentsByModule(ctx context.Context, user string, module int) ([]*Comment, error) {
+	return s.storage.ListCommentsByModule(ctx, user, module)
 
-func getCommentDTO(c *Comment) *CommentDTO {
-	return &CommentDTO{
-		Id:         c.Id,
-		ModuleId:   c.ModuleId,
-		PartId:     c.PartId,
-		ModifiedAt: c.ModifiedAt.Format(formatString),
-		Text:       c.Text,
-	}
 }

@@ -50,6 +50,7 @@ function displayScore(score, is_passed) {
     }
     btn.innerHTML = 'К модулям'
     btn.href = "/learn"
+    btn.onclick = null
 }
 
 function updateCounter() {

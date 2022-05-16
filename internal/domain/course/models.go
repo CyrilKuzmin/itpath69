@@ -3,12 +3,14 @@ package course
 import "time"
 
 type Course struct {
-	ID                  string   `json:"id"`
-	Name                string   `json:"name"`
-	Owners              []string `json:"owners"`
-	IsPrivate           bool     `json:"is_private"`
-	Stages              []Stage  `json:"stages"`
-	TestsExpirationTime time.Duration
+	ID                  string        `json:"id"`
+	IsPublished         bool          `json:"is_published"`
+	IsPrivate           bool          `json:"is_private"`
+	Name                string        `json:"name"`
+	Owners              []string      `json:"owners"`
+	Stages              []Stage       `json:"stages"`
+	TotalModules        int           `json:"total_modules"`
+	TestsExpirationTime time.Duration `json:"tests_expiration_time"`
 }
 
 type Stage struct {
