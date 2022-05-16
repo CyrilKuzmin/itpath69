@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -56,7 +55,6 @@ func (s *service) CreateNewTest(ctx context.Context, userId string, moduleId, am
 			test.Questions[qId].Answers[aId].IsCorrect = false
 		}
 	}
-	fmt.Println("new test ID", test.Id)
 	return &test, nil
 }
 

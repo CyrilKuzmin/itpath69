@@ -2,7 +2,6 @@ package mongostorage
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
@@ -83,7 +82,6 @@ func (m *MongoStorage) SaveQuestions(ctx context.Context, qs []tests.Question) e
 }
 
 func (m *MongoStorage) MarkTestExpired(ctx context.Context, id string) error {
-	fmt.Printf("storage is marking as expired test ID %v\n", id)
 	_, err := m.tests.UpdateByID(ctx, id, bson.D{
 		{"$set", bson.M{
 			"expiredat": time.Now(),

@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -26,7 +25,6 @@ func (w *Web) getTestHandler(c echo.Context) error {
 	if testId != "" {
 		test, err = w.srv.GetTestByID(c.Request().Context(), testId, true)
 	} else {
-		fmt.Println("creating new test from server GET /test")
 		test, err = w.srv.CreateNewTest(c.Request().Context(), username, moduleId)
 	}
 	return c.JSON(http.StatusOK, test)

@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"io"
 
@@ -177,9 +176,6 @@ func (s *service) CheckTest(ctx context.Context, username string, userData io.Re
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(userTestData.Questions[0].Answers)
-	fmt.Println(userTestData.Questions[1].Answers)
-	fmt.Println(userTestData.Questions[2].Answers)
 	score, err := s.ts.CheckTest(ctx, userTestData.Id, qDtoToModel(userTestData.Questions))
 	if err != nil {
 		return nil, err
@@ -200,7 +196,6 @@ func (s *service) CheckTest(ctx context.Context, username string, userData io.Re
 			return nil, err
 		}
 	}
-	fmt.Printf("marking test %v for user %v as expired\n", userTestData.Id, username)
 	err = s.ts.MarkTestExpired(ctx, userTestData.Id)
 	if err != nil {
 		return nil, err
