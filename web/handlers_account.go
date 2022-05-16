@@ -17,7 +17,7 @@ func (w *Web) accountHandler(c echo.Context) error {
 	if err != nil {
 		return errInternal(err)
 	}
-	tests, err := w.srv.ListTestsByUser(c.Request().Context(), user.Id)
+	tests, err := w.srv.ListTestsByUsername(c.Request().Context(), username)
 	if err != nil {
 		return errInternal(err)
 	}

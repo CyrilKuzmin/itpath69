@@ -33,7 +33,15 @@ func (w *Web) getTestHandler(c echo.Context) error {
 }
 
 func (w *Web) listTestsHandler(c echo.Context) error {
-	return nil
+	username := w.getUsernameIfAny(c)
+	if username == "" {
+		c.Redirect(http.StatusMovedPermanently, "/login")
+	}
+	tests, err := w.srv.ListTestsByUsername(c.Request().Context(), username)
+	if err != nil {
+		return errInternal(err)
+	}
+	return c.JSON(http.StatusOK, tests)
 }
 
 func (w *Web) checkTestHandler(c echo.Context) error {

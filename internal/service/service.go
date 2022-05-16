@@ -27,7 +27,8 @@ type Service interface {
 	// Tests
 	CreateNewTest(ctx context.Context, userId string, moduleId int) (*TestDTO, error)
 	GetTestByID(ctx context.Context, id string, hideAnswers bool) (*TestDTO, error)
-	ListTestsByUser(ctx context.Context, userId string) ([]*TestDTO, error)
+	ListTestsByUserID(ctx context.Context, userId string) ([]*TestDTO, error)
+	ListTestsByUsername(ctx context.Context, username string) ([]*TestDTO, error)
 	CheckTest(ctx context.Context, username string, userData io.Reader) (*TestResultDTO, error)
 
 	//Comments
@@ -84,7 +85,7 @@ func (s *service) GetUserByName(ctx context.Context, username string) (*UserDTO,
 	}, nil
 }
 
-func (s *service) ListTestsByUser(ctx context.Context, userId string) ([]*TestDTO, error) {
+func (s *service) ListTestsByUserID(ctx context.Context, userId string) ([]*TestDTO, error) {
 	tests, err := s.ts.ListTestsByUser(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -94,6 +95,14 @@ func (s *service) ListTestsByUser(ctx context.Context, userId string) ([]*TestDT
 		res[i] = testToDTO(t)
 	}
 	return res, nil
+}
+
+func (s *service) ListTestsByUsername(ctx context.Context, username string) ([]*TestDTO, error) {
+	user, err := s.us.GetUserByName(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	return s.ListTestsByUserID(ctx, user.Id)
 }
 
 func (s *service) ListCommentsByModule(ctx context.Context, username string, module int) ([]*CommentDTO, error) {
