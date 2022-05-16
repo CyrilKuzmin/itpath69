@@ -10,7 +10,7 @@ import (
 func (w *Web) loginHandler(c echo.Context) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
-	err := w.userService.CheckUserPassword(c.Request().Context(), username, password)
+	err := w.srv.CheckUserPassword(c.Request().Context(), username, password)
 	if err != nil {
 		return errLoginFailed()
 	}
@@ -30,7 +30,7 @@ func (w *Web) logoutHandler(c echo.Context) error {
 func (w *Web) registerHandler(c echo.Context) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
-	_, err := w.userService.CreateUser(c.Request().Context(), username, password)
+	_, err := w.srv.CreateUser(c.Request().Context(), username, password)
 	if err != nil {
 		if store.ErrorIs(err, store.AlreadyExistsErr) {
 			return errUserAlreadyExists(username)

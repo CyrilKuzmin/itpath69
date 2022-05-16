@@ -16,7 +16,7 @@ type Service interface {
 	CheckUserPassword(ctx context.Context, username, password string) error
 	GetUserByName(ctx context.Context, username string) (*UserDTO, error)
 	// users progress
-	OpenNewModules(ctx context.Context, username string) error
+	OpenNewModules(ctx context.Context, username string, amount int) error
 	MarkModuleAsCompleted(ctx context.Context, username string, moduleId int) error
 }
 
@@ -72,37 +72,27 @@ func (s *service) GetUserByName(ctx context.Context, username string) (*UserDTO,
 		User:             user,
 		ModulesOpened:    opened,
 		ModulesCompleted: completed,
+		ModulesTotal:     8, // will be fixed when course will be implemented
 	}, nil
-}
-
-func (s *service) OpenNewModules(ctx context.Context, username string) error {
-	user, _ := s.storage.GetUserByName(ctx, username)
-	currTime := time.Now()
-	for i := len(user.Modules); i <= len(user.Modules)+module.ModulesPerStage; i++ {
-		if _, found := user.Modules[i]; found {
-			continue
-		}
-		user.Modules[i] = ModuleProgress{CreatedAt: currTime}
-	}
-	return s.storage.UpdateProgress(ctx, username, user.Modules)
 }
 
 func (s *service) MarkModuleAsCompleted(ctx context.Context, username string, moduleId int) error {
 	currTime := time.Now()
 	user, _ := s.storage.GetUserByName(ctx, username)
-	opened := len(user.Modules)
 	created := user.Modules[moduleId].CreatedAt
 	user.Modules[moduleId] = ModuleProgress{CreatedAt: created, CompletedAt: currTime}
-	completedOnStage := 0
-	for i := opened - module.ModulesPerStage + 1; i <= opened; i++ {
-		if !user.Modules[i].CompletedAt.IsZero() {
-			completedOnStage++
-		}
+	return s.storage.UpdateProgress(ctx, username, user.Modules)
+}
+
+func (s *service) OpenNewModules(ctx context.Context, username string, amount int) error {
+	currTime := time.Now()
+	user, err := s.storage.GetUserByName(ctx, username)
+	if err != nil {
+		return err
 	}
-	if completedOnStage > 2 {
-		for i := len(user.Modules) + 1; i <= opened+module.ModulesPerStage; i++ {
-			user.Modules[i] = ModuleProgress{CreatedAt: currTime}
-		}
+	opened := len(user.Modules)
+	for i := 1; i <= amount; i++ {
+		user.Modules[opened+i] = ModuleProgress{CreatedAt: currTime}
 	}
 	return s.storage.UpdateProgress(ctx, username, user.Modules)
 }

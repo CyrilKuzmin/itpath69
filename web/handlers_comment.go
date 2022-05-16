@@ -20,15 +20,7 @@ func (w *Web) getCommentsHandler(c echo.Context) error {
 	if err != nil {
 		return errInternal(err)
 	}
-	// check if IDs are valid and allowed
-	user, err := w.userService.GetUserByName(c.Request().Context(), username)
-	if err != nil {
-		return errInternal(err)
-	}
-	if moduleId > user.ModulesOpened {
-		return errModuleNotAllowed(moduleId)
-	}
-	comments, err := w.commentService.ListCommentsByModule(c.Request().Context(), username, moduleId)
+	comments, err := w.srv.ListCommentsByModule(c.Request().Context(), username, moduleId)
 	if err != nil {
 		return errInternal(err)
 	}
@@ -55,23 +47,8 @@ func (w *Web) newCommentHandler(c echo.Context) error {
 	if err != nil {
 		return errInternal(err)
 	}
-	// check if IDs are valid and allowed
-	user, err := w.userService.GetUserByName(c.Request().Context(), username)
-	if err != nil {
-		return errInternal(err)
-	}
-	if moduleId > user.ModulesOpened {
-		return errModuleNotAllowed(moduleId)
-	}
-	module, err := w.moduleService.GetModuleByID(c.Request().Context(), moduleId)
-	if err != nil {
-		return errInternal(err)
-	}
-	if partId > len(module.Data) {
-		return errBadRequest()
-	}
 	// create comment
-	comment, err := w.commentService.CreateComment(c.Request().Context(), username, text, moduleId, partId)
+	comment, err := w.srv.CreateComment(c.Request().Context(), username, text, moduleId, partId)
 	if err != nil {
 		return errInternal(err)
 	}
@@ -80,15 +57,18 @@ func (w *Web) newCommentHandler(c echo.Context) error {
 }
 
 func (w *Web) updateCommentHandler(c echo.Context) error {
-	commentId := c.FormValue("id")
-	text := c.FormValue("text")
 	// redirect to login page if no session found
 	username := w.getUsernameIfAny(c)
 	if username == "" {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
+	commentId := c.FormValue("id")
+	text := c.FormValue("text")
+	if len(text) > MaximumCommentLength {
+		return errCommentTooLong()
+	}
 	// update comment
-	newComment, err := w.commentService.UpdateComment(c.Request().Context(), username, commentId, text)
+	newComment, err := w.srv.UpdateComment(c.Request().Context(), username, commentId, text)
 	if err != nil {
 		return errInternal(err)
 	}
@@ -97,17 +77,17 @@ func (w *Web) updateCommentHandler(c echo.Context) error {
 }
 
 func (w *Web) deleteCommentHandler(c echo.Context) error {
-	commentId := c.QueryParam("id")
-	if commentId == "" {
-		return errBadRequest()
-	}
 	// redirect to login page if no session found
 	username := w.getUsernameIfAny(c)
 	if username == "" {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
+	commentId := c.QueryParam("id")
+	if commentId == "" {
+		return errBadRequest()
+	}
 	// delete comment
-	err := w.commentService.DeleteCommentByID(c.Request().Context(), username, commentId)
+	err := w.srv.DeleteCommentByID(c.Request().Context(), username, commentId)
 	if err != nil {
 		return errInternal(err)
 	}

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 )
@@ -45,4 +46,19 @@ func (w *Web) deleteUserSession(c echo.Context, sess *sessions.Session) {
 		Domain:  "",
 		Expires: time.Now().Add(-24 * time.Hour),
 	})
+}
+
+func shiftMetas(in []module.ModuleDTO) {
+	for in[len(in)-ModulesPerRow].Id != 1 {
+		for k := 0; k < ModulesPerRow; k++ {
+			less := in[len(in)-1]
+			for i := len(in) - 1; i >= 0; i-- {
+				if i == 0 {
+					in[i] = less
+					continue
+				}
+				in[i] = in[i-1]
+			}
+		}
+	}
 }

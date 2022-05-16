@@ -36,7 +36,7 @@
                             <li><strong>Описание</strong>: {{ .Module.Description }}</li>
                             <li><strong>Тэги</strong>: {{ range $t := .Module.Tags}} <span class="badge bg-info">{{ $t }}</span> {{ end }}</li>
                             <li><strong>Открыт</strong>: {{ .OpenedAt }} </li>
-                            {{ if .Completed }}
+                            {{ if .IsCompleted }}
                             <li><strong>Завершен</strong>: {{ .CompletedAt }} </li> {{ end}}
                             <li><a class="btn btn-success" href="/testing?module_id={{ .Module.Id }}">Пройти тест</a></li>
                         </ul>

@@ -5,10 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/users"
+	"github.com/CyrilKuzmin/itpath69/internal/service"
 	"github.com/brpaz/echozap"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -18,28 +15,17 @@ import (
 )
 
 type Web struct {
-	session        sessions.Store
-	log            *zap.Logger
-	userService    users.Service
-	moduleService  module.Service
-	commentService comment.Service
-	testsService   tests.Service
-	e              *echo.Echo
+	session sessions.Store
+	log     *zap.Logger
+	srv     service.Service
+	e       *echo.Echo
 }
 
-func NewWeb(log *zap.Logger,
-	sessionStore sessions.Store,
-	us users.Service,
-	ms module.Service,
-	cs comment.Service,
-	ts tests.Service) *Web {
+func NewWeb(log *zap.Logger, sessionStore sessions.Store, srv service.Service) *Web {
 	w := &Web{
-		session:        sessionStore,
-		log:            log,
-		userService:    us,
-		moduleService:  ms,
-		commentService: cs,
-		testsService:   ts,
+		session: sessionStore,
+		log:     log,
+		srv:     srv,
 	}
 	w.e = initEcho(log)
 	w.initHandlers()

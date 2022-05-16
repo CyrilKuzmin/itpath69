@@ -2,6 +2,7 @@ package mongostorage
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
@@ -23,7 +24,7 @@ func (m *MongoStorage) GetTestByID(ctx context.Context, id string) (*tests.Test,
 	}
 	return res, nil
 }
-func (m *MongoStorage) GetTestsByUser(ctx context.Context, userId string) ([]*tests.Test, error) {
+func (m *MongoStorage) ListTestsByUser(ctx context.Context, userId string) ([]*tests.Test, error) {
 	res := make([]*tests.Test, 0)
 	cur, err := m.tests.Find(ctx, bson.D{
 		{"userid", userId},
@@ -82,6 +83,7 @@ func (m *MongoStorage) SaveQuestions(ctx context.Context, qs []tests.Question) e
 }
 
 func (m *MongoStorage) MarkTestExpired(ctx context.Context, id string) error {
+	fmt.Printf("storage is marking as expired test ID %v\n", id)
 	_, err := m.tests.UpdateByID(ctx, id, bson.D{
 		{"$set", bson.M{
 			"expiredat": time.Now(),

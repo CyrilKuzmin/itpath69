@@ -19,6 +19,7 @@ type ModuleProgress struct {
 
 type UserDTO struct {
 	*User
+	ModulesTotal     int `json:"modules_total"`
 	ModulesOpened    int `json:"modules_opened"`
 	ModulesCompleted int `json:"modules_completed"`
 }

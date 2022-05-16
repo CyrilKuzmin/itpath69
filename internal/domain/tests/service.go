@@ -13,9 +13,9 @@ const DefaultExpiraionTime = 24 * time.Hour
 const DefaultPassThreshold = float32(0.85)
 
 type Service interface {
-	GenerateTest(ctx context.Context, userId string, moduleId, amount int) (*Test, error)
+	CreateNewTest(ctx context.Context, userId string, moduleId, amount int) (*Test, error)
 	GetTestByID(ctx context.Context, id string, hideAnswers bool) (*Test, error)
-	GetTestsByUser(ctx context.Context, userId string) ([]*Test, error)
+	ListTestsByUser(ctx context.Context, userId string) ([]*Test, error)
 	CheckTest(ctx context.Context, id string, userAnswers []*Question) (float32, error)
 	MarkTestExpired(ctx context.Context, id string) error
 	SaveQuestions(ctx context.Context, qs []Question) error
@@ -33,7 +33,7 @@ func NewService(st Storage, log *zap.Logger) Service {
 	}
 }
 
-func (s *service) GenerateTest(ctx context.Context, userId string, moduleId, amount int) (*Test, error) {
+func (s *service) CreateNewTest(ctx context.Context, userId string, moduleId, amount int) (*Test, error) {
 	// moduleId == 0 - specific case, need to get questions for all opened modules
 	qs, err := s.storage.GetModuleQuestions(ctx, moduleId, amount)
 	if err != nil {
@@ -74,8 +74,8 @@ func (s *service) GetTestByID(ctx context.Context, id string, hideAnswers bool) 
 	return test, nil
 }
 
-func (s *service) GetTestsByUser(ctx context.Context, userId string) ([]*Test, error) {
-	return s.storage.GetTestsByUser(ctx, userId)
+func (s *service) ListTestsByUser(ctx context.Context, userId string) ([]*Test, error) {
+	return s.storage.ListTestsByUser(ctx, userId)
 }
 
 func (s *service) CheckTest(ctx context.Context, id string, userAnswers []*Question) (float32, error) {

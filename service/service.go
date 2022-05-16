@@ -11,11 +11,7 @@ import (
 	mongosessions "github.com/2-72/gorilla-sessions-mongodb"
 
 	"github.com/CyrilKuzmin/itpath69/config"
-	"github.com/CyrilKuzmin/itpath69/content"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/users"
+	"github.com/CyrilKuzmin/itpath69/internal/service"
 	"github.com/CyrilKuzmin/itpath69/store/mongostorage"
 	"github.com/CyrilKuzmin/itpath69/web"
 
@@ -23,10 +19,9 @@ import (
 )
 
 type App struct {
-	config         *config.Config
-	web            *web.Web
-	log            *zap.Logger
-	contentManager *content.ContentManager
+	config *config.Config
+	web    *web.Web
+	log    *zap.Logger
 }
 
 func NewApp(conf *config.Config) *App {
@@ -39,22 +34,15 @@ func NewApp(conf *config.Config) *App {
 	if err != nil {
 		log.Error("cannot init session storage", zap.Error(err))
 	}
-	// init echo server with its dependencies
-	us := users.NewService(st, log)
-	ms := module.NewService(st, log)
-	cs := comment.NewService(st, log)
-	ts := tests.NewService(st, log)
-	webserver := web.NewWeb(log, session, us, ms, cs, ts)
-	// init content manager
-	cm := content.NewContentManager(ms, ts, log)
+	// init service and web-server
+	service := service.NewService(log, st)
+	webserver := web.NewWeb(log, session, service)
 	// create App and init handlers/middlewares
 	s := &App{
-		config:         conf,
-		web:            webserver,
-		log:            log,
-		contentManager: cm,
+		config: conf,
+		web:    webserver,
+		log:    log,
 	}
-	cm.UpdateContentinStorage()
 	return s
 }
 

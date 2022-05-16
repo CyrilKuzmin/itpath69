@@ -13,11 +13,11 @@ func (w *Web) accountHandler(c echo.Context) error {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
 	// get user
-	user, err := w.userService.GetUserByName(c.Request().Context(), username)
+	user, err := w.srv.GetUserByName(c.Request().Context(), username)
 	if err != nil {
 		return errInternal(err)
 	}
-	tests, err := w.testsService.GetTestsByUser(c.Request().Context(), user.Id)
+	tests, err := w.srv.ListTestsByUser(c.Request().Context(), user.Id)
 	if err != nil {
 		return errInternal(err)
 	}

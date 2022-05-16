@@ -1,7 +1,6 @@
 package web
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -21,16 +20,12 @@ func (w *Web) getTestHandler(c echo.Context) error {
 	if err != nil {
 		return errInternal(err)
 	}
-	user, err := w.userService.GetUserByName(c.Request().Context(), username)
-	if err != nil {
-		return errInternal(err)
-	}
 	testId := c.QueryParam("test_id")
 	var test *tests.Test
 	if testId != "" {
-		test, err = w.testsService.GetTestByID(c.Request().Context(), testId, true)
+		test, err = w.srv.GetTestByID(c.Request().Context(), testId, true)
 	} else {
-		test, err = w.testsService.GenerateTest(c.Request().Context(), user.Id, moduleId, tests.DefaultQuestionsAmount)
+		test, err = w.srv.CreateNewTest(c.Request().Context(), username, moduleId)
 	}
 	return c.JSON(http.StatusOK, test)
 }
@@ -39,38 +34,15 @@ func (w *Web) listTestsHandler(c echo.Context) error {
 	return nil
 }
 
-type UserResult struct {
-	Score    float32 `json:"score"`
-	IsPassed bool    `json:"is_passed"`
-}
-
 func (w *Web) checkTestHandler(c echo.Context) error {
 	// redirect to login page if no session found
 	username := w.getUsernameIfAny(c)
 	if username == "" {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
-	userTestData := &tests.Test{}
-	err := json.NewDecoder(c.Request().Body).Decode(&userTestData)
-	if err != nil {
-		return errBadRequest()
-	}
-	score, err := w.testsService.CheckTest(c.Request().Context(), userTestData.Id, userTestData.Questions)
+	res, err := w.srv.CheckTest(c.Request().Context(), username, c.Request().Body)
 	if err != nil {
 		return errInternal(err)
 	}
-	var isPassed bool
-	if score > tests.DefaultPassThreshold {
-		// move it to service
-		err = w.userService.MarkModuleAsCompleted(c.Request().Context(), username, userTestData.ModuleId)
-		if err != nil {
-			return errInternal(err)
-		}
-		isPassed = true
-	}
-	err = w.testsService.MarkTestExpired(c.Request().Context(), userTestData.Id)
-	if err != nil {
-		return errInternal(err)
-	}
-	return c.JSON(http.StatusOK, UserResult{score, isPassed})
+	return c.JSON(http.StatusOK, res)
 }

@@ -31,3 +31,8 @@ type Answer struct {
 	Text      string `json:"text"`
 	IsCorrect bool   `json:"is_correct"`
 }
+
+type UserResult struct {
+	Score    float32 `json:"score"`
+	IsPassed bool    `json:"is_passed"`
+}

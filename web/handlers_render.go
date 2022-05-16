@@ -1,13 +1,15 @@
 package web
 
 import (
-	"html/template"
+	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
 	"github.com/labstack/echo/v4"
 )
+
+const ModulesPerRow = 4
 
 func (w *Web) indexHandler(c echo.Context) error {
 	username := w.getUsernameIfAny(c)
@@ -30,38 +32,35 @@ func (w *Web) learnHandler(c echo.Context) error {
 		c.Redirect(http.StatusMovedPermanently, "/login")
 	}
 	// get the list of opened modules and show them
-	user, err := w.userService.GetUserByName(c.Request().Context(), username)
+	user, err := w.srv.GetUserByName(c.Request().Context(), username)
 	if err != nil {
 		return errInternal(err)
 	}
-	modulesMeta, err := w.moduleService.ModulesPreview(c.Request().Context(), len(user.Modules))
+	metas, err := w.srv.ModulesPreview(c.Request().Context(), user, len(user.Modules))
 	if err != nil {
 		return errInternal(err)
 	}
-	// mark completed modules
-	for i, row := range modulesMeta {
-		for j, m := range row {
-			if !user.Modules[m.Id].CompletedAt.IsZero() {
-				modulesMeta[i][j].Completed = true
-			}
-		}
+	shiftMetas(metas)
+	rowsNum := len(metas) / ModulesPerRow
+	if len(metas)%ModulesPerRow != 0 {
+		rowsNum++
 	}
+	fmt.Println("rows total", rowsNum, "metas", len(metas))
+	rows := make([][]module.ModuleDTO, rowsNum)
+	for i := 0; i < rowsNum; i++ {
+		row := metas[i*ModulesPerRow : i*ModulesPerRow+ModulesPerRow]
+		rows[i] = row
+	}
+	fmt.Println(" HERE", rows[0][1].Id)
 	// render all these structs
 	return c.Render(http.StatusOK, "learn.html", map[string]interface{}{
 		"User":             user,
 		"Username":         user.Username, // for navbar
-		"Rows":             modulesMeta,
-		"ModulesTotal":     w.moduleService.ModulesTotal(),
+		"Rows":             rows,
+		"ModulesTotal":     user.ModulesTotal,
 		"ModulesOpened":    user.ModulesOpened,
 		"ModulesCompleted": user.ModulesCompleted,
 	})
-}
-
-type ModulePart struct {
-	Id       int
-	ModuleId int // comment form rendering bug
-	Data     template.HTML
-	Comments []*comment.CommentDTO
 }
 
 func (w *Web) moduleHandler(c echo.Context) error {
@@ -77,46 +76,20 @@ func (w *Web) moduleHandler(c echo.Context) error {
 		return errInternal(err)
 	}
 	// get user and check if he has permissions for this module
-	user, err := w.userService.GetUserByName(c.Request().Context(), username)
+	user, err := w.srv.GetUserByName(c.Request().Context(), username)
 	if err != nil {
 		return errInternal(err)
 	}
-	if id > len(user.Modules) {
-		return errModuleNotAllowed(id)
-	}
-	// load module
-	module, err := w.moduleService.GetModuleByID(c.Request().Context(), id)
-	if err != nil {
-		return errInternal(err)
-	}
-	// list comments for module
-	cmts, err := w.commentService.ListCommentsByModule(c.Request().Context(), username, id)
-	if err != nil {
-		return errInternal(err)
-	}
-	comments := make(map[int][]*comment.CommentDTO)
-	for _, c := range cmts {
-		comments[c.PartId] = append(comments[c.PartId], c)
-	}
-	// need to convert string into template.HTML and add comments
-	data := make([]ModulePart, len(module.Data))
-	for i, p := range module.Data {
-		data[i] = ModulePart{
-			Id:       p.Id,
-			Data:     template.HTML(p.Data),
-			Comments: comments[p.Id],
-			ModuleId: module.Id,
-		}
-	}
+	module, err := w.srv.GetModuleForUser(c.Request().Context(), user, id)
 	// render
 	return c.Render(http.StatusOK, "module.html", map[string]interface{}{
 		"Username":    username,
 		"User":        user,
-		"Module":      module.Meta, // comment form rendering bug
-		"Completed":   !user.Modules[module.Meta.Id].CompletedAt.IsZero(),
-		"CompletedAt": user.Modules[module.Meta.Id].CompletedAt,
-		"OpenedAt":    user.Modules[module.Meta.Id].CreatedAt,
-		"Data":        data,
+		"Module":      module, // comment form rendering bug
+		"IsCompleted": module.IsCompleted,
+		"CompletedAt": user.Modules[module.Id].CompletedAt,
+		"OpenedAt":    user.Modules[module.Id].CreatedAt,
+		"Data":        module.Data,
 	})
 }
 
@@ -132,8 +105,9 @@ func (w *Web) testingHandler(c echo.Context) error {
 	if err != nil {
 		return errInternal(err)
 	}
+	// Optional param. It's not ampty if we wanna to continue the test (from account page)
 	testId := c.QueryParam("test_id")
-	test, err := w.testsService.GetTestByID(c.Request().Context(), testId, true)
+	test, err := w.srv.GetTestByID(c.Request().Context(), testId, true)
 	return c.Render(http.StatusOK, "testing.html", map[string]interface{}{
 		"Username": username,
 		"Module":   moduleId,

@@ -21,7 +21,7 @@
                             <div class="module-box">
                                 <div class="module-img"><img src="{{$module.Logo}}" class="img-fluid" alt=""></div>
                                 <div class="meta">
-                                    {{ if $module.Completed }}
+                                    {{ if $module.IsCompleted }}
                                     <span class="badge bg-success">Завершен</span> {{ else }}
                                     <span class="badge bg-info">В процессе</span> {{ end }}
                                 </div>
