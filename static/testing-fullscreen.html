@@ -5,14 +5,14 @@
         {{ if .Test }}
         <h2 id="score-result">Возобновить тест?</h2>
         <p id="score-details">Вы собираетесь возобновить тест от {{ .Test.CreatedAt }} {{ if eq .Module 0 }}по всем модулям {{else}} по модулю #{{.Module}}{{end}}</p>
-        <div id="btn-start" class="d-flex">
-            <a onclick="restart({{ .Test.Id }},{{ .Module }})" class="btn-get-started">Начать</a>
+        <div id="testing-action" class="d-flex">
+            <a onclick="restart({{ .Test.Id }},{{ .Module }})" class="btn-get-started" id="testing-link-action">Начать</a>
         </div>
         {{ else }}
         <h2 id="score-result">Запустить тест?</h2>
         <p id="score-details">Вы собираетесь запустить новый тест {{ if eq .Module 0 }}по всем модулям {{else}} по модулю #{{.Module}}{{end}}</p>
-        <div id="btn-start" class="d-flex">
-            <a onclick="new_start({{ .Module }})" class="btn-get-started">Начать</a>
+        <div id="testing-action" class="d-flex">
+            <a onclick="new_start({{ .Module }})" class="btn-get-started" id="testing-link-action">Начать</a>
         </div>
         {{ end }}
 

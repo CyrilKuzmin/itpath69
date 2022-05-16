@@ -14,7 +14,7 @@ const DefaultPassThreshold = float32(0.85)
 
 type Service interface {
 	GenerateTest(ctx context.Context, userId string, moduleId, amount int) (*Test, error)
-	GetTestByID(ctx context.Context, id string) (*Test, error)
+	GetTestByID(ctx context.Context, id string, hideAnswers bool) (*Test, error)
 	GetTestsByUser(ctx context.Context, userId string) ([]*Test, error)
 	CheckTest(ctx context.Context, id string, userAnswers []*Question) (float32, error)
 	MarkTestExpired(ctx context.Context, id string) error
@@ -59,8 +59,19 @@ func (s *service) GenerateTest(ctx context.Context, userId string, moduleId, amo
 	return &test, nil
 }
 
-func (s *service) GetTestByID(ctx context.Context, id string) (*Test, error) {
-	return s.storage.GetTestByID(ctx, id)
+func (s *service) GetTestByID(ctx context.Context, id string, hideAnswers bool) (*Test, error) {
+	test, err := s.storage.GetTestByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if hideAnswers {
+		for qId := range test.Questions {
+			for aId := range test.Questions[qId].Answers {
+				test.Questions[qId].Answers[aId].IsCorrect = false
+			}
+		}
+	}
+	return test, nil
 }
 
 func (s *service) GetTestsByUser(ctx context.Context, userId string) ([]*Test, error) {

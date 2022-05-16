@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -134,8 +133,7 @@ func (w *Web) testingHandler(c echo.Context) error {
 		return errInternal(err)
 	}
 	testId := c.QueryParam("test_id")
-	test, err := w.testsService.GetTestByID(c.Request().Context(), testId)
-	fmt.Println(test)
+	test, err := w.testsService.GetTestByID(c.Request().Context(), testId, true)
 	return c.Render(http.StatusOK, "testing.html", map[string]interface{}{
 		"Username": username,
 		"Module":   moduleId,

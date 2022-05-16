@@ -109,7 +109,7 @@ h6 {
 --------------------------------------------------------------*/
 
 section {
-    padding: 60px 0;
+    padding: 15px 0;
     overflow: hidden;
 }
 
@@ -1029,7 +1029,7 @@ section {
     background: url("../img/hero-bg.png") center center;
     background-size: cover;
     position: relative;
-    padding: 120px 0 60px;
+    padding: 120px 0 0px;
 }
 
 .hero-static h2 {

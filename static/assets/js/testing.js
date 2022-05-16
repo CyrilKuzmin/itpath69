@@ -22,13 +22,14 @@ function sleep(ms) {
 
 function toogleCarouselVisibility(makeVisible) {
     if (makeVisible) {
-        document.getElementById("btn-start").remove() // we'll not shwo this BTN again
+        document.getElementById("testing-action").classList.add("d-none");
         document.getElementById("testing-logo").classList.add("d-none");
         document.getElementById("testing-intro").classList.add("d-none");
         document.getElementById("testing-check-btn").classList.remove("d-none");
         document.getElementById("testing-answers-counter").classList.remove("d-none");
         document.getElementById("testing").classList.remove("d-none");
     } else {
+        document.getElementById("testing-action").classList.remove("d-none");
         document.getElementById("testing-logo").classList.remove("d-none");
         document.getElementById("testing-intro").classList.remove("d-none");
         document.getElementById("testing-check-btn").classList.add("d-none");
@@ -37,15 +38,18 @@ function toogleCarouselVisibility(makeVisible) {
     }
 }
 
-function displayScore(score) {
+function displayScore(score, is_passed) {
     result_elem = document.getElementById("score-result")
     details_elem = document.getElementById("score-details")
+    btn = document.getElementById("testing-link-action")
     details_elem.innerHTML = `Вы набрали ${(score*100).toFixed(2)}%`
-    if (score > 0.85) {
+    if (is_passed) {
         result_elem.innerHTML = `Поздравляю! Тест пройден`
     } else {
         result_elem.innerHTML = `Вы не прошли тест`
     }
+    btn.innerHTML = 'К модулям'
+    btn.href = "/learn"
 }
 
 function updateCounter() {
@@ -222,7 +226,7 @@ function checkResults(event, test_id, store) {
         .then(response => response.json())
         .then(data => {
             toogleCarouselVisibility(false)
-            displayScore(data.score)
+            displayScore(data.score, data.is_passed)
             store.removeItem(storageTest)
         })
         .catch((error) => {
