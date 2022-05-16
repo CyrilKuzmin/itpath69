@@ -132,8 +132,9 @@ func (s *service) CheckTest(ctx context.Context, username string, userData io.Re
 	if err != nil {
 		return nil, err
 	}
+	mod, err := s.ms.GetModuleByID(ctx, userTestData.ModuleId)
 	var isPassed bool
-	if score >= tests.DefaultPassThreshold {
+	if float64(score) >= mod.Meta.TestPassThreshold {
 		err = s.us.MarkModuleAsCompleted(ctx, username, userTestData.ModuleId)
 		if err != nil {
 			return nil, err

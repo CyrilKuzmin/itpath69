@@ -20,6 +20,7 @@ type ModuleMeta struct {
 	Tags                []string `json:"tags"`
 	Logo                string   `json:"logo"`
 	TestQuestionsAmount int      `json:"test_questions_amounts"`
+	TestPassThreshold   float64  `json:"test_pass_threshold"`
 }
 
 // Part contains all valuable Data. Probably it will be MD or HTML

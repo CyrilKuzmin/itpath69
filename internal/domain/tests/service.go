@@ -10,7 +10,6 @@ import (
 
 const DefaultQuestionsAmount = 3
 const DefaultExpiraionTime = 24 * time.Hour
-const DefaultPassThreshold = float32(0.85)
 
 type Service interface {
 	CreateNewTest(ctx context.Context, userId string, moduleId, amount int) (*Test, error)
