@@ -79,8 +79,23 @@
                 </div>
         </section>
         <!-- End Portfolio Details Section -->
-        <script>
-        </script>
+        <!-- Model for delete comment confirmation-->
+        <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        Удаление комментария
+                    </div>
+                    <div class="modal-body">
+                        Вы уверены, что хотите удалить комментарий?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                        <a class="btn btn-danger btn-ok">Удалить</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
     <!-- End #main -->
     <script src="assets/js/comments.js"></script>

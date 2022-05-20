@@ -8,13 +8,6 @@ type User struct {
 	Username      string    `json:"username"`
 	PasswordHash  string    `json:"password_hash"`
 	CreatedAt     time.Time `json:"created_at"`
-	CurrentCourse string    // ID of current course
-	CurrentStage  int
-	Modules       map[int]ModuleProgress `json:"modules"`
-}
-
-// ModuleProgress is a module for user. It contains additional metadata. Id - uuid. Created from Module
-type ModuleProgress struct {
-	CreatedAt   time.Time `json:"created_at"`
-	CompletedAt time.Time `json:"completed_at"`
+	CurrentCourse string    `json:"current_course"` // ID of current course
+	CurrentStage  int       `json:"current_stage"`
 }

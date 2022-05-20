@@ -50,7 +50,6 @@
     });
 
     function register_form_submit(thisForm, action, formData) {
-        console.log("FUCK!")
         fetch(action, {
                 method: 'POST',
                 body: formData,

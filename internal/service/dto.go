@@ -2,15 +2,17 @@ package service
 
 import (
 	"html/template"
+	"time"
 
 	"github.com/CyrilKuzmin/itpath69/internal/domain/users"
 )
 
 type UserDTO struct {
 	*users.User
-	ModulesTotal     int `json:"modules_total"`
-	ModulesOpened    int `json:"modules_opened"`
-	ModulesCompleted int `json:"modules_completed"`
+	ModulesTotal     int                       `json:"modules_total"`
+	ModulesOpen      int                       `json:"modules_open"`
+	ModulesCompleted int                       `json:"modules_completed"`
+	Modules          map[int]ModuleProgressDTO `json:"modules"`
 }
 
 type CommentDTO struct {
@@ -70,4 +72,9 @@ type AnswerDTO struct {
 type TestResultDTO struct {
 	Score    float32 `json:"score"`
 	IsPassed bool    `json:"is_passed"`
+}
+
+type ModuleProgressDTO struct {
+	OpenedAt    time.Time `json:"opened_at"`
+	CompletedAt time.Time `json:"completed_at"`
 }

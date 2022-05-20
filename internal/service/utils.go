@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/progress"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
 )
 
@@ -83,6 +84,31 @@ func aDtoToModel(in []AnswerDTO) []tests.Answer {
 		res[i] = tests.Answer{
 			Text:      a.Text,
 			IsCorrect: a.IsCorrect,
+		}
+	}
+	return res
+}
+
+func countModulesProgress(in []progress.ModuleProgress) (total, opened, completed int) {
+	for _, p := range in {
+		if !p.OpenedAt.IsZero() {
+			opened++
+		}
+		if !p.CompletedAt.IsZero() {
+			completed++
+		}
+	}
+	return len(in), opened, completed
+}
+
+func convertModulesProgress(in []progress.ModuleProgress) map[int]ModuleProgressDTO {
+	res := make(map[int]ModuleProgressDTO)
+	for _, p := range in {
+		if !p.OpenedAt.IsZero() {
+			res[p.ModuleID] = ModuleProgressDTO{
+				OpenedAt:    p.OpenedAt,
+				CompletedAt: p.CompletedAt,
+			}
 		}
 	}
 	return res

@@ -35,7 +35,7 @@ func (w *Web) learnHandler(c echo.Context) error {
 	if err != nil {
 		return errInternal(err)
 	}
-	metas, err := w.srv.ModulesPreview(c.Request().Context(), user, len(user.Modules))
+	metas, err := w.srv.ModulesPreview(c.Request().Context(), user)
 	if err != nil {
 		return errInternal(err)
 	}
@@ -55,7 +55,7 @@ func (w *Web) learnHandler(c echo.Context) error {
 		"Username":         user.Username, // for navbar
 		"Rows":             rows,
 		"ModulesTotal":     user.ModulesTotal,
-		"ModulesOpened":    user.ModulesOpened,
+		"ModulesOpened":    user.ModulesOpen,
 		"ModulesCompleted": user.ModulesCompleted,
 	})
 }
@@ -85,7 +85,7 @@ func (w *Web) moduleHandler(c echo.Context) error {
 		"Module":      module, // comment form rendering bug
 		"IsCompleted": module.IsCompleted,
 		"CompletedAt": user.Modules[module.Id].CompletedAt,
-		"OpenedAt":    user.Modules[module.Id].CreatedAt,
+		"OpenedAt":    user.Modules[module.Id].OpenedAt,
 		"Data":        module.Data,
 	})
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/progress"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/users"
 	"go.uber.org/zap"
@@ -15,13 +16,13 @@ import (
 
 type Service interface {
 	// User
-	CreateUser(ctx context.Context, username, password string) (*users.User, error)
+	CreateUser(ctx context.Context, username, password string) (*UserDTO, error)
 	GetUserByName(ctx context.Context, username string) (*UserDTO, error)
 	CheckUserPassword(ctx context.Context, username, password string) error
 
 	// Modules
 	GetModuleForUser(ctx context.Context, user *UserDTO, moduleId int) (*ModuleDTO, error)
-	ModulesPreview(ctx context.Context, user *UserDTO, amount int) ([]ModuleDTO, error)
+	ModulesPreview(ctx context.Context, user *UserDTO) ([]ModuleDTO, error)
 
 	// Tests
 	CreateNewTest(ctx context.Context, userId string, moduleId int) (*TestDTO, error)
@@ -43,6 +44,7 @@ type Storage interface {
 	module.Storage
 	tests.Storage
 	users.Storage
+	progress.Storage
 }
 
 type service struct {
@@ -50,6 +52,7 @@ type service struct {
 	ms module.Service
 	cs comment.Service
 	ts tests.Service
+	ps progress.Service
 }
 
 func NewService(log *zap.Logger, s Storage) Service {
@@ -58,7 +61,8 @@ func NewService(log *zap.Logger, s Storage) Service {
 	ms := module.NewService(s, log)
 	cs := comment.NewService(s, log)
 	ts := tests.NewService(s, log)
-	return &service{us, ms, cs, ts}
+	ps := progress.NewService(s, log)
+	return &service{us, ms, cs, ts, ps}
 }
 
 // simple functions for rendering
@@ -69,18 +73,17 @@ func (s *service) GetUserByName(ctx context.Context, username string) (*UserDTO,
 	if err != nil {
 		return nil, err
 	}
-	opened := len(user.Modules)
-	completed := 0
-	for _, mp := range user.Modules {
-		if !mp.CompletedAt.IsZero() {
-			completed++
-		}
+	pr, err := s.ps.GetUserProgress(ctx, user.Id, user.CurrentCourse)
+	if err != nil {
+		return nil, err
 	}
+	total, opened, completed := countModulesProgress(pr)
 	return &UserDTO{
 		User:             user,
-		ModulesOpened:    opened,
+		ModulesOpen:      opened,
 		ModulesCompleted: completed,
-		ModulesTotal:     8, // will be fixed when course will be implemented
+		ModulesTotal:     total,
+		Modules:          convertModulesProgress(pr),
 	}, nil
 }
 
@@ -110,7 +113,7 @@ func (s *service) ListCommentsByModule(ctx context.Context, username string, mod
 	if err != nil {
 		return nil, err
 	}
-	if module > user.ModulesOpened {
+	if module > user.ModulesOpen {
 		return nil, errModuleNotAllowed(module)
 	}
 	comments, err := s.cs.ListCommentsByModule(ctx, username, module)
@@ -130,7 +133,7 @@ func (s *service) CreateComment(ctx context.Context, username, text string, modu
 	if err != nil {
 		return nil, err
 	}
-	if module > user.ModulesOpened {
+	if module > user.ModulesOpen {
 		return nil, errModuleNotAllowed(module)
 	}
 	m, err := s.ms.GetModuleByID(ctx, module)
@@ -159,8 +162,28 @@ func (s *service) DeleteCommentByID(ctx context.Context, username, id string) er
 	return s.cs.DeleteCommentByID(ctx, username, id)
 }
 
-func (s *service) CreateUser(ctx context.Context, username, password string) (*users.User, error) {
-	return s.us.CreateUser(ctx, username, password)
+func (s *service) CreateUser(ctx context.Context, username, password string) (*UserDTO, error) {
+	user, err := s.us.CreateUser(ctx, username, password)
+	if err != nil {
+		return nil, err
+	}
+	pr, err := s.ps.CreateCourseProgress(ctx, user.Id, user.CurrentCourse, 8, 4) // total amount of modules
+	if err != nil {
+		return nil, err
+	}
+	err = s.ps.OpenNewModules(ctx, user.Id, user.CurrentCourse, 4)
+	if err != nil {
+		return nil, err
+	}
+	total, opened, completed := countModulesProgress(pr)
+	return &UserDTO{
+		User:             user,
+		ModulesOpen:      opened,
+		ModulesCompleted: completed,
+		ModulesTotal:     total,
+		Modules:          convertModulesProgress(pr),
+	}, nil
+
 }
 func (s *service) CheckUserPassword(ctx context.Context, username, password string) error {
 	return s.us.CheckUserPassword(ctx, username, password)
@@ -183,15 +206,15 @@ func (s *service) CheckTest(ctx context.Context, username string, userData io.Re
 	mod, err := s.ms.GetModuleByID(ctx, userTestData.ModuleId)
 	var isPassed bool
 	if float64(score) >= mod.Meta.TestPassThreshold {
-		err = s.us.MarkModuleAsCompleted(ctx, username, userTestData.ModuleId)
+		err = s.ps.MarkModuleAsCompleted(ctx, user.Id, user.CurrentCourse, userTestData.ModuleId)
 		if err != nil {
 			return nil, err
 		}
 		isPassed = true
 	}
 	// add logic for opening new modules here
-	if user.ModulesOpened < 8 { // fix it
-		err = s.us.OpenNewModules(ctx, username, 4)
+	if user.ModulesOpen < 8 { // fix it
+		err = s.ps.OpenNewModules(ctx, user.Id, user.CurrentCourse, 4)
 		if err != nil {
 			return nil, err
 		}
@@ -211,7 +234,7 @@ func (s *service) CreateNewTest(ctx context.Context, username string, moduleId i
 	if err != nil {
 		return nil, err
 	}
-	if moduleId > user.ModulesOpened {
+	if moduleId > user.ModulesOpen {
 		return nil, errModuleNotAllowed(moduleId)
 	}
 	module, err := s.ms.GetModuleByID(ctx, moduleId)
@@ -268,8 +291,8 @@ func (s *service) GetModuleForUser(ctx context.Context, user *UserDTO, moduleId 
 	}, nil
 }
 
-func (s *service) ModulesPreview(ctx context.Context, user *UserDTO, amount int) ([]ModuleDTO, error) {
-	modules, err := s.ms.ListOpenModulesMeta(ctx, amount)
+func (s *service) ModulesPreview(ctx context.Context, user *UserDTO) ([]ModuleDTO, error) {
+	modules, err := s.ms.ListOpenModulesMeta(ctx, user.ModulesOpen)
 	if err != nil {
 		return nil, err
 	}
