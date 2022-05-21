@@ -20,12 +20,12 @@ func (m *MongoStorage) CreateComment(ctx context.Context, c *comment.Comment) er
 
 func (m *MongoStorage) UpdateComment(ctx context.Context, c *comment.Comment) error {
 	var check *comment.Comment
-	err := m.comments.FindOne(ctx, bson.D{{"_id", c.Id}}).Decode(check)
+	err := m.comments.FindOne(ctx, bson.D{{"_id", c.ID}}).Decode(check)
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return m.CreateComment(ctx, c)
 	}
 	_, err = m.comments.UpdateOne(ctx,
-		bson.M{"_id": c.Id},
+		bson.M{"_id": c.ID},
 		bson.D{
 			{"$set", bson.M{
 				"text":       c.Text,
@@ -46,10 +46,11 @@ func (m *MongoStorage) DeleteCommentByID(ctx context.Context, commentId string) 
 	return nil
 }
 
-func (m *MongoStorage) ListCommentsByModule(ctx context.Context, user string, module int) ([]*comment.Comment, error) {
+func (m *MongoStorage) ListCommentsByModule(ctx context.Context, userId, courseId string, module int) ([]*comment.Comment, error) {
 	res := make([]*comment.Comment, 0)
 	cur, err := m.comments.Find(ctx, bson.M{
-		"user":     user,
+		"userid":   userId,
+		"courseid": courseId,
 		"moduleid": module,
 	})
 	if err != nil {
@@ -70,11 +71,11 @@ func (m *MongoStorage) ListCommentsByModule(ctx context.Context, user string, mo
 	return res, nil
 }
 
-func (m *MongoStorage) GetCommentByID(ctx context.Context, user, commentId string) (*comment.Comment, error) {
+func (m *MongoStorage) GetCommentByID(ctx context.Context, userId, commentId string) (*comment.Comment, error) {
 	res := comment.Comment{}
 	err := m.comments.FindOne(ctx, bson.M{
-		"_id":  commentId,
-		"user": user,
+		"_id":    commentId,
+		"userid": userId,
 	}).Decode(&res)
 	if err != nil {
 		return nil, store.ErrInternal(err)

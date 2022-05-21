@@ -25,7 +25,7 @@ func (w *Web) getTestHandler(c echo.Context) error {
 	if testId != "" {
 		test, err = w.srv.GetTestByID(c.Request().Context(), testId, true)
 	} else {
-		test, err = w.srv.CreateNewTest(c.Request().Context(), username, moduleId)
+		test, err = w.srv.CreateTest(c.Request().Context(), username, moduleId)
 	}
 	return c.JSON(http.StatusOK, test)
 }

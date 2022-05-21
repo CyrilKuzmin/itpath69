@@ -26,7 +26,7 @@ type Service interface {
 	ModulesPreview(ctx context.Context, user *UserDTO) ([]ModuleDTO, error)
 
 	// Tests
-	CreateNewTest(ctx context.Context, userId string, moduleId int) (*TestDTO, error)
+	CreateTest(ctx context.Context, userId string, moduleId int) (*TestDTO, error)
 	GetTestByID(ctx context.Context, id string, hideAnswers bool) (*TestDTO, error)
 	ListTestsByUserID(ctx context.Context, userId string) ([]*TestDTO, error)
 	ListTestsByUsername(ctx context.Context, username string) ([]*TestDTO, error)
@@ -120,7 +120,7 @@ func (s *service) ListCommentsByModule(ctx context.Context, username string, mod
 	if module > user.ModulesOpen {
 		return nil, errModuleNotAllowed(module)
 	}
-	comments, err := s.cs.ListCommentsByModule(ctx, username, module)
+	comments, err := s.cs.ListCommentsByModule(ctx, user.Id, user.CurrentCourse, module)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,14 @@ func (s *service) CreateComment(ctx context.Context, username, text string, modu
 	if part > len(m.Data) {
 		return nil, errPartNotExists(part)
 	}
-	c, err := s.cs.CreateComment(ctx, username, text, module, part)
+	newComment := comment.CreateCommentArgs{
+		UserID:   user.Id,
+		CourseID: user.CurrentCourse,
+		ModuleID: module,
+		PartID:   part,
+		Text:     text,
+	}
+	c, err := s.cs.CreateComment(ctx, newComment)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +162,11 @@ func (s *service) CreateComment(ctx context.Context, username, text string, modu
 }
 
 func (s *service) UpdateComment(ctx context.Context, username, id, text string) (*CommentDTO, error) {
-	c, err := s.cs.UpdateComment(ctx, username, id, text)
+	user, err := s.GetUserByName(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	c, err := s.cs.UpdateComment(ctx, user.Id, id, text)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +174,11 @@ func (s *service) UpdateComment(ctx context.Context, username, id, text string) 
 }
 
 func (s *service) DeleteCommentByID(ctx context.Context, username, id string) error {
-	return s.cs.DeleteCommentByID(ctx, username, id)
+	user, err := s.GetUserByName(ctx, username)
+	if err != nil {
+		return err
+	}
+	return s.cs.DeleteCommentByID(ctx, user.Id, id)
 }
 
 func (s *service) CreateUser(ctx context.Context, username, password string) (*UserDTO, error) {
@@ -248,7 +263,7 @@ func (s *service) CheckTest(ctx context.Context, username string, userData io.Re
 	}, nil
 }
 
-func (s *service) CreateNewTest(ctx context.Context, username string, moduleId int) (*TestDTO, error) {
+func (s *service) CreateTest(ctx context.Context, username string, moduleId int) (*TestDTO, error) {
 	user, err := s.GetUserByName(ctx, username)
 	if err != nil {
 		return nil, err
@@ -256,11 +271,22 @@ func (s *service) CreateNewTest(ctx context.Context, username string, moduleId i
 	if moduleId > user.ModulesOpen {
 		return nil, errModuleNotAllowed(moduleId)
 	}
+	cc, err := s.crs.GetCourseByID(ctx, user.CurrentCourse)
+	if err != nil {
+		return nil, err
+	}
 	module, err := s.ms.GetModuleByID(ctx, user.CurrentCourse, moduleId)
 	if err != nil {
 		return nil, err
 	}
-	test, err := s.ts.CreateNewTest(ctx, user.Id, user.CurrentCourse, moduleId, module.Meta.TestQuestionsAmount)
+	newTestArgs := tests.CreateTestArgs{
+		UserID:          user.Id,
+		CourseID:        user.CurrentCourse,
+		ModuleID:        moduleId,
+		QuestionsAmount: module.Meta.TestQuestionsAmount,
+		ExpirateAfter:   cc.TestsExpirationTime,
+	}
+	test, err := s.ts.CreateTest(ctx, newTestArgs)
 	if err != nil {
 		return nil, err
 	}

@@ -9,10 +9,10 @@ import (
 )
 
 type Service interface {
-	CreateComment(ctx context.Context, user, text string, module, part int) (*Comment, error)
-	UpdateComment(ctx context.Context, user, id, text string) (*Comment, error)
-	DeleteCommentByID(ctx context.Context, user, id string) error
-	ListCommentsByModule(ctx context.Context, user string, module int) ([]*Comment, error)
+	CreateComment(ctx context.Context, args CreateCommentArgs) (*Comment, error)
+	UpdateComment(ctx context.Context, userId, id, text string) (*Comment, error)
+	DeleteCommentByID(ctx context.Context, userId, id string) error
+	ListCommentsByModule(ctx context.Context, userId, courseID string, module int) ([]*Comment, error)
 }
 
 type service struct {
@@ -27,14 +27,23 @@ func NewService(st Storage, log *zap.Logger) Service {
 	}
 }
 
-func (s *service) CreateComment(ctx context.Context, user, text string, module, part int) (*Comment, error) {
+type CreateCommentArgs struct {
+	UserID   string
+	CourseID string
+	ModuleID int
+	PartID   int
+	Text     string
+}
+
+func (s *service) CreateComment(ctx context.Context, args CreateCommentArgs) (*Comment, error) {
 	c := &Comment{
-		Id:         uuid.NewString(),
-		User:       user,
-		ModuleId:   module,
-		PartId:     part,
+		ID:         uuid.NewString(),
+		UserID:     args.UserID,
+		CourseID:   args.CourseID,
+		ModuleID:   args.ModuleID,
+		PartID:     args.PartID,
 		ModifiedAt: time.Now(),
-		Text:       text,
+		Text:       args.Text,
 	}
 	err := s.storage.CreateComment(ctx, c)
 	if err != nil {
@@ -42,8 +51,8 @@ func (s *service) CreateComment(ctx context.Context, user, text string, module, 
 	}
 	return c, nil
 }
-func (s *service) UpdateComment(ctx context.Context, user, id, text string) (*Comment, error) {
-	c, err := s.storage.GetCommentByID(ctx, user, id)
+func (s *service) UpdateComment(ctx context.Context, userId, id, text string) (*Comment, error) {
+	c, err := s.storage.GetCommentByID(ctx, userId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -55,10 +64,10 @@ func (s *service) UpdateComment(ctx context.Context, user, id, text string) (*Co
 	}
 	return c, nil
 }
-func (s *service) DeleteCommentByID(ctx context.Context, user, id string) error {
+func (s *service) DeleteCommentByID(ctx context.Context, userId, id string) error {
 	return s.storage.DeleteCommentByID(ctx, id)
 }
-func (s *service) ListCommentsByModule(ctx context.Context, user string, module int) ([]*Comment, error) {
-	return s.storage.ListCommentsByModule(ctx, user, module)
+func (s *service) ListCommentsByModule(ctx context.Context, userId, courseID string, module int) ([]*Comment, error) {
+	return s.storage.ListCommentsByModule(ctx, userId, courseID, module)
 
 }

@@ -12,9 +12,9 @@ const formatString = "02 Jan 06 15:04 MST"
 
 func commentToDTO(c *comment.Comment) *CommentDTO {
 	return &CommentDTO{
-		Id:         c.Id,
-		ModuleId:   c.ModuleId,
-		PartId:     c.PartId,
+		Id:         c.ID,
+		ModuleId:   c.ModuleID,
+		PartId:     c.PartID,
 		ModifiedAt: c.ModifiedAt.Format(formatString),
 		Text:       c.Text,
 	}

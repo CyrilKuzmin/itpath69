@@ -4,10 +4,11 @@ import "time"
 
 // Comment is a users comments for Part data
 type Comment struct {
-	Id         string    `json:"id" bson:"_id"` // UUID
-	User       string    `json:"user"`
-	ModuleId   int       `json:"module_id"`
-	PartId     int       `json:"part_id"`
+	ID         string    `json:"id" bson:"_id"` // UUID
+	UserID     string    `json:"user_id"`
+	CourseID   string    `json:"course_id"`
+	ModuleID   int       `json:"module_id"`
+	PartID     int       `json:"part_id"`
 	ModifiedAt time.Time `json:"modified_at"`
 	Text       string    `json:"text"`
 }

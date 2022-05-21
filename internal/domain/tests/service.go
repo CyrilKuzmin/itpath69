@@ -8,11 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
-const DefaultQuestionsAmount = 3
-const DefaultExpiraionTime = 24 * time.Hour
-
 type Service interface {
-	CreateNewTest(ctx context.Context, userId, courseId string, moduleId, amount int) (*Test, error)
+	CreateTest(ctx context.Context, args CreateTestArgs) (*Test, error)
 	GetTestByID(ctx context.Context, id string, hideAnswers bool) (*Test, error)
 	ListTestsByUser(ctx context.Context, userId string) ([]*Test, error)
 	CheckTest(ctx context.Context, id string, userAnswers []*Question) (float32, error)
@@ -32,19 +29,27 @@ func NewService(st Storage, log *zap.Logger) Service {
 	}
 }
 
-func (s *service) CreateNewTest(ctx context.Context, userId, courseId string, moduleId, amount int) (*Test, error) {
+type CreateTestArgs struct {
+	UserID          string
+	CourseID        string
+	ModuleID        int
+	QuestionsAmount int
+	ExpirateAfter   time.Duration
+}
+
+func (s *service) CreateTest(ctx context.Context, args CreateTestArgs) (*Test, error) {
 	// moduleId == 0 - specific case, need to get questions for all opened modules
-	qs, err := s.storage.GetModuleQuestions(ctx, moduleId, amount)
+	qs, err := s.storage.GetModuleQuestions(ctx, args.ModuleID, args.QuestionsAmount)
 	if err != nil {
 		return nil, err
 	}
 	test := Test{
 		Id:        uuid.NewString(),
-		UserId:    userId,
-		CourseId:  courseId,
-		ModuleId:  moduleId,
+		UserId:    args.UserID,
+		CourseId:  args.CourseID,
+		ModuleId:  args.ModuleID,
 		CreatedAt: time.Now(),
-		ExpiredAt: time.Now().Add(DefaultExpiraionTime),
+		ExpiredAt: time.Now().Add(args.ExpirateAfter),
 		Questions: qs,
 	}
 	err = s.storage.SaveTest(ctx, &test)
