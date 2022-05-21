@@ -39,7 +39,9 @@ func (w *Web) learnHandler(c echo.Context) error {
 	if err != nil {
 		return errInternal(err)
 	}
-	shiftMetas(metas)
+	if len(metas) > ModulesPerRow {
+		shiftMetas(metas)
+	}
 	rowsNum := len(metas) / ModulesPerRow
 	if len(metas)%ModulesPerRow != 0 {
 		rowsNum++
@@ -51,12 +53,9 @@ func (w *Web) learnHandler(c echo.Context) error {
 	}
 	// render all these structs
 	return c.Render(http.StatusOK, "learn.html", map[string]interface{}{
-		"User":             user,
-		"Username":         user.Username, // for navbar
-		"Rows":             rows,
-		"ModulesTotal":     user.ModulesTotal,
-		"ModulesOpened":    user.ModulesOpen,
-		"ModulesCompleted": user.ModulesCompleted,
+		"User":     user,
+		"Username": user.Username, // for navbar
+		"Rows":     rows,
 	})
 }
 
@@ -83,10 +82,8 @@ func (w *Web) moduleHandler(c echo.Context) error {
 		"Username":    username,
 		"User":        user,
 		"Module":      module, // comment form rendering bug
-		"IsCompleted": module.IsCompleted,
 		"CompletedAt": user.Modules[module.Id].CompletedAt,
 		"OpenedAt":    user.Modules[module.Id].OpenedAt,
-		"Data":        module.Data,
 	})
 }
 

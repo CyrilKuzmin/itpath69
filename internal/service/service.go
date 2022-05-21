@@ -140,7 +140,7 @@ func (s *service) CreateComment(ctx context.Context, username, text string, modu
 	if module > user.ModulesOpen {
 		return nil, errModuleNotAllowed(module)
 	}
-	m, err := s.ms.GetModuleByID(ctx, module)
+	m, err := s.ms.GetModuleByID(ctx, user.CurrentCourse, module)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func (s *service) CheckTest(ctx context.Context, username string, userData io.Re
 	if err != nil {
 		return nil, err
 	}
-	mod, err := s.ms.GetModuleByID(ctx, userTestData.ModuleId)
+	mod, err := s.ms.GetModuleByID(ctx, user.CurrentCourse, userTestData.ModuleId)
 	var isPassed bool
 	if float64(score) >= mod.Meta.TestPassThreshold {
 		pr, err := s.ps.MarkModuleAsCompleted(ctx, user.Id, user.CurrentCourse, userTestData.ModuleId)
@@ -256,7 +256,7 @@ func (s *service) CreateNewTest(ctx context.Context, username string, moduleId i
 	if moduleId > user.ModulesOpen {
 		return nil, errModuleNotAllowed(moduleId)
 	}
-	module, err := s.ms.GetModuleByID(ctx, moduleId)
+	module, err := s.ms.GetModuleByID(ctx, user.CurrentCourse, moduleId)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ func (s *service) GetModuleForUser(ctx context.Context, user *UserDTO, moduleId 
 		return nil, errModuleNotAllowed(moduleId)
 	}
 	// load module
-	mod, err := s.ms.GetModuleByID(ctx, moduleId)
+	mod, err := s.ms.GetModuleByID(ctx, user.CurrentCourse, moduleId)
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +311,7 @@ func (s *service) GetModuleForUser(ctx context.Context, user *UserDTO, moduleId 
 }
 
 func (s *service) ModulesPreview(ctx context.Context, user *UserDTO) ([]ModuleDTO, error) {
-	modules, err := s.ms.ListOpenModulesMeta(ctx, user.ModulesOpen)
+	modules, err := s.ms.ListOpenModulesMeta(ctx, user.CurrentCourse, user.ModulesOpen)
 	if err != nil {
 		return nil, err
 	}

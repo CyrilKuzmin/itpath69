@@ -9,9 +9,9 @@ import (
 const ModulesPerStage = 4
 
 type Service interface {
-	ListOpenModulesMeta(ctx context.Context, amount int) ([]ModuleMeta, error)
+	ListOpenModulesMeta(ctx context.Context, courseId string, amount int) ([]ModuleMeta, error)
 	// ModulesPreview(ctx context.Context, amount int) ([][]ModuleMeta, error)
-	GetModuleByID(ctx context.Context, id int) (Module, error)
+	GetModuleByID(ctx context.Context, courseId string, id int) (Module, error)
 	// used by ContentManager
 	CreateModules(ctx context.Context, modules []Module) error
 }
@@ -28,16 +28,16 @@ func NewService(st Storage, log *zap.Logger) Service {
 	}
 }
 
-func (s *service) ListOpenModulesMeta(ctx context.Context, amount int) ([]ModuleMeta, error) {
-	modules, err := s.storage.GetModulesMeta(ctx, amount)
+func (s *service) ListOpenModulesMeta(ctx context.Context, courseId string, amount int) ([]ModuleMeta, error) {
+	modules, err := s.storage.GetModulesMeta(ctx, courseId, amount)
 	if err != nil {
 		return nil, err
 	}
 	return modules, nil
 }
 
-func (s *service) GetModuleByID(ctx context.Context, id int) (Module, error) {
-	return s.storage.GetModule(ctx, id)
+func (s *service) GetModuleByID(ctx context.Context, courseId string, id int) (Module, error) {
+	return s.storage.GetModule(ctx, courseId, id)
 }
 
 func (s *service) CreateModules(ctx context.Context, modules []Module) error {

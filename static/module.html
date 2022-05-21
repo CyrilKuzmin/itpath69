@@ -36,13 +36,13 @@
                             <li><strong>Описание</strong>: {{ .Module.Description }}</li>
                             <li><strong>Тэги</strong>: {{ range $t := .Module.Tags}} <span class="badge bg-info">{{ $t }}</span> {{ end }}</li>
                             <li><strong>Открыт</strong>: {{ .OpenedAt }} </li>
-                            {{ if .IsCompleted }}
+                            {{ if .Module.IsCompleted }}
                             <li><strong>Завершен</strong>: {{ .CompletedAt }} </li> {{ end}}
                             <li><a class="btn btn-success" href="/testing?module_id={{ .Module.Id }}">Пройти тест</a></li>
                         </ul>
                     </div>
                     <div class="module-description">
-                        {{ range $p := .Data}}{{ $p.Data }}
+                        {{ range $p := .Module.Data}}{{ $p.Data }}
                         <p></p>
                         <div id="comments-for-part-{{ $p.Id}}">
                             {{ range $c := $p.Comments }}
