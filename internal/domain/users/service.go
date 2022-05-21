@@ -16,6 +16,7 @@ type Service interface {
 	CreateUser(ctx context.Context, username, password string) (*User, error)
 	CheckUserPassword(ctx context.Context, username, password string) error
 	GetUserByName(ctx context.Context, username string) (*User, error)
+	SetCourse(ctx context.Context, username, courseId string) error
 }
 
 type service struct {
@@ -35,7 +36,7 @@ func (s *service) CreateUser(ctx context.Context, username, password string) (*U
 		PasswordHash:  hex.EncodeToString(pwMd5[:]),
 		CreatedAt:     time.Now(),
 		CurrentCourse: DefaultCourseID,
-		CurrentStage:  1,
+		// CurrentStage:  1,
 	}
 	err := s.storage.CreateUser(ctx, user)
 	if err != nil {
@@ -52,4 +53,8 @@ func (s *service) CheckUserPassword(ctx context.Context, username, password stri
 
 func (s *service) GetUserByName(ctx context.Context, username string) (*User, error) {
 	return s.storage.GetUserByName(ctx, username)
+}
+
+func (s *service) SetCourse(ctx context.Context, username, courseId string) error {
+	return nil
 }

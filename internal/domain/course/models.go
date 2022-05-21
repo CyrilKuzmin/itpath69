@@ -3,7 +3,7 @@ package course
 import "time"
 
 type Course struct {
-	ID                  string        `json:"id"`
+	ID                  string        `json:"id" bson:"_id"`
 	IsPublished         bool          `json:"is_published"`
 	IsPrivate           bool          `json:"is_private"`
 	Name                string        `json:"name"`

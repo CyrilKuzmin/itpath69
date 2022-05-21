@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/course"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/progress"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
@@ -101,6 +102,13 @@ func countModulesProgress(in []progress.ModuleProgress) (total, opened, complete
 	return len(in), opened, completed
 }
 
+func convertModuleProgress(in progress.ModuleProgress) ModuleProgressDTO {
+	return ModuleProgressDTO{
+		OpenedAt:    in.OpenedAt,
+		CompletedAt: in.CompletedAt,
+	}
+}
+
 func convertModulesProgress(in []progress.ModuleProgress) map[int]ModuleProgressDTO {
 	res := make(map[int]ModuleProgressDTO)
 	for _, p := range in {
@@ -112,4 +120,37 @@ func convertModulesProgress(in []progress.ModuleProgress) map[int]ModuleProgress
 		}
 	}
 	return res
+}
+
+func getCurrentUserStage(user *UserDTO, stages []course.Stage) course.Stage {
+	total := 0
+	for _, st := range stages {
+		total += len(st.Modules)
+		if user.ModulesOpen > total {
+			// not this stage
+			continue
+		}
+		return st
+	}
+	return stages[0]
+}
+
+func isCurrStageCompleted(user *UserDTO, stages []course.Stage) bool {
+	total := 0
+	for _, st := range stages {
+		cmpl := 0
+		total += len(st.Modules)
+		for _, n := range st.Modules {
+			if user.ModulesOpen > total {
+				continue
+			}
+			if !user.Modules[n].CompletedAt.IsZero() {
+				cmpl++
+			}
+			if cmpl >= st.ModulesToComplete {
+				return true
+			}
+		}
+	}
+	return false
 }

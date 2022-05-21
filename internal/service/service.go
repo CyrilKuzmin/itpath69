@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
+	"github.com/CyrilKuzmin/itpath69/internal/domain/course"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/progress"
 	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
@@ -45,14 +46,16 @@ type Storage interface {
 	tests.Storage
 	users.Storage
 	progress.Storage
+	course.Storage
 }
 
 type service struct {
-	us users.Service
-	ms module.Service
-	cs comment.Service
-	ts tests.Service
-	ps progress.Service
+	us  users.Service
+	ms  module.Service
+	cs  comment.Service
+	ts  tests.Service
+	ps  progress.Service
+	crs course.Service
 }
 
 func NewService(log *zap.Logger, s Storage) Service {
@@ -62,7 +65,8 @@ func NewService(log *zap.Logger, s Storage) Service {
 	cs := comment.NewService(s, log)
 	ts := tests.NewService(s, log)
 	ps := progress.NewService(s, log)
-	return &service{us, ms, cs, ts, ps}
+	crs := course.NewService(s, log)
+	return &service{us, ms, cs, ts, ps, crs}
 }
 
 // simple functions for rendering
@@ -167,14 +171,19 @@ func (s *service) CreateUser(ctx context.Context, username, password string) (*U
 	if err != nil {
 		return nil, err
 	}
-	pr, err := s.ps.CreateCourseProgress(ctx, user.Id, user.CurrentCourse, 8, 4) // total amount of modules
+	cc, err := s.crs.GetCourseByID(ctx, user.CurrentCourse)
 	if err != nil {
 		return nil, err
 	}
-	err = s.ps.OpenNewModules(ctx, user.Id, user.CurrentCourse, 4)
+	modulesToOpen := len(cc.Stages[0].Modules)
+	pr, err := s.ps.CreateCourseProgress(ctx, user.Id, user.CurrentCourse, cc.TotalModules, modulesToOpen) // total amount of modules
 	if err != nil {
 		return nil, err
 	}
+	// err = s.ps.OpenNewModules(ctx, user.Id, user.CurrentCourse, 4)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	total, opened, completed := countModulesProgress(pr)
 	return &UserDTO{
 		User:             user,
@@ -206,17 +215,27 @@ func (s *service) CheckTest(ctx context.Context, username string, userData io.Re
 	mod, err := s.ms.GetModuleByID(ctx, userTestData.ModuleId)
 	var isPassed bool
 	if float64(score) >= mod.Meta.TestPassThreshold {
-		err = s.ps.MarkModuleAsCompleted(ctx, user.Id, user.CurrentCourse, userTestData.ModuleId)
+		pr, err := s.ps.MarkModuleAsCompleted(ctx, user.Id, user.CurrentCourse, userTestData.ModuleId)
 		if err != nil {
 			return nil, err
 		}
+		user.ModulesCompleted++
+		user.Modules[userTestData.ModuleId] = convertModuleProgress(*pr)
 		isPassed = true
 	}
 	// add logic for opening new modules here
-	if user.ModulesOpen < 8 { // fix it
-		err = s.ps.OpenNewModules(ctx, user.Id, user.CurrentCourse, 4)
-		if err != nil {
-			return nil, err
+	cc, err := s.crs.GetCourseByID(ctx, user.CurrentCourse)
+	if err != nil {
+		return nil, err
+	}
+	if user.ModulesOpen < cc.TotalModules { // if we have closed modules
+		// check stages
+		if isCurrStageCompleted(user, cc.Stages) {
+			modulesToOpen := len(getCurrentUserStage(user, cc.Stages).Modules)
+			err = s.ps.OpenNewModules(ctx, user.Id, user.CurrentCourse, modulesToOpen)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	err = s.ts.MarkTestExpired(ctx, userTestData.Id)
@@ -241,7 +260,7 @@ func (s *service) CreateNewTest(ctx context.Context, username string, moduleId i
 	if err != nil {
 		return nil, err
 	}
-	test, err := s.ts.CreateNewTest(ctx, user.Id, moduleId, module.Meta.TestQuestionsAmount)
+	test, err := s.ts.CreateNewTest(ctx, user.Id, user.CurrentCourse, moduleId, module.Meta.TestQuestionsAmount)
 	if err != nil {
 		return nil, err
 	}

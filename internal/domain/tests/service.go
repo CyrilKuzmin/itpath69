@@ -12,7 +12,7 @@ const DefaultQuestionsAmount = 3
 const DefaultExpiraionTime = 24 * time.Hour
 
 type Service interface {
-	CreateNewTest(ctx context.Context, userId string, moduleId, amount int) (*Test, error)
+	CreateNewTest(ctx context.Context, userId, courseId string, moduleId, amount int) (*Test, error)
 	GetTestByID(ctx context.Context, id string, hideAnswers bool) (*Test, error)
 	ListTestsByUser(ctx context.Context, userId string) ([]*Test, error)
 	CheckTest(ctx context.Context, id string, userAnswers []*Question) (float32, error)
@@ -32,7 +32,7 @@ func NewService(st Storage, log *zap.Logger) Service {
 	}
 }
 
-func (s *service) CreateNewTest(ctx context.Context, userId string, moduleId, amount int) (*Test, error) {
+func (s *service) CreateNewTest(ctx context.Context, userId, courseId string, moduleId, amount int) (*Test, error) {
 	// moduleId == 0 - specific case, need to get questions for all opened modules
 	qs, err := s.storage.GetModuleQuestions(ctx, moduleId, amount)
 	if err != nil {
@@ -41,6 +41,7 @@ func (s *service) CreateNewTest(ctx context.Context, userId string, moduleId, am
 	test := Test{
 		Id:        uuid.NewString(),
 		UserId:    userId,
+		CourseId:  courseId,
 		ModuleId:  moduleId,
 		CreatedAt: time.Now(),
 		ExpiredAt: time.Now().Add(DefaultExpiraionTime),
@@ -129,22 +130,18 @@ func checkSingleAnswer(orig, user *Question) float32 {
 }
 
 func checkMultiChoose(orig, user *Question) float32 {
-	correctAnswers := 0
-	for _, a := range orig.Answers {
-		if a.IsCorrect {
-			correctAnswers++
-		}
-	}
 	userCorrect := 0
 	for _, a := range orig.Answers {
 		for _, b := range user.Answers {
 			if a.Text == b.Text {
-				if a.IsCorrect == true && b.IsCorrect == true {
-					userCorrect += 1
+				if a.IsCorrect == b.IsCorrect {
+					userCorrect++
+				} else {
+					userCorrect--
 				}
 			}
 		}
 	}
-	res := (float32(userCorrect) / float32(correctAnswers))
+	res := (float32(userCorrect) / float32(len(orig.Answers)))
 	return res
 }

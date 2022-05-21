@@ -18,6 +18,7 @@ type MongoStorage struct {
 	questions *mongo.Collection
 	tests     *mongo.Collection
 	progress  *mongo.Collection
+	courses   *mongo.Collection
 	// Sessions used as a session store, should be imported
 	Sessions *mongo.Collection
 }
@@ -39,6 +40,7 @@ func NewMongo(log *zap.Logger, uri, database string) *MongoStorage {
 	questions := client.Database(database).Collection("questions")
 	tests := client.Database(database).Collection("tests")
 	progress := client.Database(database).Collection("progress")
+	courses := client.Database(database).Collection("courses")
 	sess := client.Database(database).Collection("sessions")
 	return &MongoStorage{
 		client:    client,
@@ -50,6 +52,7 @@ func NewMongo(log *zap.Logger, uri, database string) *MongoStorage {
 		questions: questions,
 		tests:     tests,
 		progress:  progress,
+		courses:   courses,
 		Sessions:  sess,
 	}
 }

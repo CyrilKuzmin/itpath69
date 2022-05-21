@@ -9,5 +9,5 @@ type User struct {
 	PasswordHash  string    `json:"password_hash"`
 	CreatedAt     time.Time `json:"created_at"`
 	CurrentCourse string    `json:"current_course"` // ID of current course
-	CurrentStage  int       `json:"current_stage"`
+	// CurrentStage  int       `json:"current_stage"`
 }

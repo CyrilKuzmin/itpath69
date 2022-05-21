@@ -12,6 +12,7 @@ const (
 type Test struct {
 	Id        string      `json:"id" bson:"_id"`
 	UserId    string      `json:"user_id"`
+	CourseId  string      `json:"course_id"`
 	ModuleId  int         `json:"module_id"`
 	CreatedAt time.Time   `json:"created_at"`
 	ExpiredAt time.Time   `json:"expired_at"`

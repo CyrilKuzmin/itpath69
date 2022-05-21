@@ -12,7 +12,7 @@ import (
 type Service interface {
 	CreateCourseProgress(ctx context.Context, userId, courseId string, total, open int) ([]ModuleProgress, error)
 	OpenNewModules(ctx context.Context, userId, courseId string, amount int) error
-	MarkModuleAsCompleted(ctx context.Context, userId, courseId string, moduleId int) error
+	MarkModuleAsCompleted(ctx context.Context, userId, courseId string, moduleId int) (*ModuleProgress, error)
 	GetUserProgress(ctx context.Context, userId, courseId string) ([]ModuleProgress, error)
 }
 
@@ -33,7 +33,7 @@ func (s *service) CreateCourseProgress(ctx context.Context, userId, courseId str
 			ID:        uuid.NewString(),
 			UserID:    userId,
 			CourseID:  courseId,
-			ModuleID:  i,
+			ModuleID:  i + 1, // modules start index - 1
 			CreatedAt: now,
 		}
 		if modulesOpen > 0 {
@@ -49,12 +49,17 @@ func (s *service) CreateCourseProgress(ctx context.Context, userId, courseId str
 	return res, nil
 }
 
-func (s *service) MarkModuleAsCompleted(ctx context.Context, userId, courseId string, moduleId int) error {
+func (s *service) MarkModuleAsCompleted(ctx context.Context, userId, courseId string, moduleId int) (*ModuleProgress, error) {
 	pr, err := s.storage.GetModuleProgress(ctx, userId, courseId, moduleId)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return s.storage.MarkModuleAsCompleted(ctx, pr.ID)
+	pr.CompletedAt = time.Now()
+	err = s.storage.MarkModuleAsCompleted(ctx, pr.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &pr, nil
 }
 
 func (s *service) OpenNewModules(ctx context.Context, userId, courseId string, amount int) error {
