@@ -54,3 +54,17 @@ func (m *MongoStorage) GetUserByName(ctx context.Context, username string) (*use
 	}
 	return user, nil
 }
+
+func (m *MongoStorage) ChangePassword(ctx context.Context, username, newPasswordHash string) error {
+	_, err := m.users.UpdateOne(ctx,
+		bson.M{"username": username},
+		bson.D{
+			{"$set", bson.M{
+				"passwordhash": newPasswordHash,
+			}},
+		})
+	if err != nil {
+		return store.ErrInternal(err)
+	}
+	return nil
+}

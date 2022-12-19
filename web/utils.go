@@ -48,7 +48,7 @@ func (w *Web) deleteUserSession(c echo.Context, sess *sessions.Session) {
 	})
 }
 
-func shiftMetas(in []service.ModuleDTO) {
+func shiftModulesMetas(in []service.ModuleDTO) {
 	for in[len(in)-ModulesPerRow].Id != 1 {
 		for k := 0; k < ModulesPerRow; k++ {
 			less := in[len(in)-1]

@@ -16,6 +16,7 @@ type Service interface {
 	CreateUser(ctx context.Context, username, password string) (*User, error)
 	CheckUserPassword(ctx context.Context, username, password string) error
 	GetUserByName(ctx context.Context, username string) (*User, error)
+	ChangePassword(ctx context.Context, username, newPassword string) error
 	SetCourse(ctx context.Context, username, courseId string) error
 }
 
@@ -53,6 +54,12 @@ func (s *service) CheckUserPassword(ctx context.Context, username, password stri
 
 func (s *service) GetUserByName(ctx context.Context, username string) (*User, error) {
 	return s.storage.GetUserByName(ctx, username)
+}
+
+func (s *service) ChangePassword(ctx context.Context, username, newPassword string) error {
+	pwMd5 := md5.Sum([]byte(newPassword))
+	hash := hex.EncodeToString(pwMd5[:])
+	return s.storage.ChangePassword(ctx, username, hash)
 }
 
 func (s *service) SetCourse(ctx context.Context, username, courseId string) error {

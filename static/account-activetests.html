@@ -1,0 +1,12 @@
+{{ define "AccountActiveTests" }} {{ if .Tests }}
+<h3>Активные тесты:</h3>
+<ul>
+    {{ range $test := .Tests }}
+    <li>
+        <a class="btn-light" href="/testing?test_id={{$test.Id}}&module_id={{$test.ModuleId}}"><i class="bi-arrow-right-circle-fill"></i> Тест от {{ $test.CreatedAt }} по {{ if eq $test.ModuleId 0 }}всем модулям {{else}}модулю #{{$test.ModuleId}}{{end}}</a>
+    </li>
+    {{ end }}
+</ul>
+{{ else }}
+<h3 class="pb-5">У вас нет активных тестов</h3>
+{{ end }} {{ end }}

@@ -5,7 +5,6 @@ import (
 
 	"github.com/CyrilKuzmin/itpath69/store"
 	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
 )
 
 func (w *Web) loginHandler(c echo.Context) error {
@@ -33,7 +32,6 @@ func (w *Web) registerHandler(c echo.Context) error {
 	password := c.FormValue("password")
 	_, err := w.srv.CreateUser(c.Request().Context(), username, password)
 	if err != nil {
-		w.log.Warn("wtf err", zap.Error(err))
 		if store.ErrorIs(err, store.AlreadyExistsErr) {
 			return errUserAlreadyExists(username)
 		} else {
@@ -41,5 +39,19 @@ func (w *Web) registerHandler(c echo.Context) error {
 		}
 	}
 	w.setUserSession(c, username)
+	return c.String(http.StatusOK, "OK")
+}
+
+func (w *Web) changePasswordHandler(c echo.Context) error {
+	// redirect to login page if no session found
+	username := w.getUsernameIfAny(c)
+	if username == "" {
+		c.Redirect(http.StatusMovedPermanently, "/login")
+	}
+	newPassword := c.FormValue("password")
+	err := w.srv.ChangePassword(c.Request().Context(), username, newPassword)
+	if err != nil {
+		return errInternal(err)
+	}
 	return c.String(http.StatusOK, "OK")
 }

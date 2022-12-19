@@ -40,7 +40,7 @@ func (w *Web) learnHandler(c echo.Context) error {
 		return errInternal(err)
 	}
 	if len(metas) > ModulesPerRow {
-		shiftMetas(metas)
+		shiftModulesMetas(metas)
 	}
 	rowsNum := len(metas) / ModulesPerRow
 	if len(metas)%ModulesPerRow != 0 {

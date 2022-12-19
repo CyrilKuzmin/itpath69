@@ -82,6 +82,7 @@ func (w *Web) initHandlers() {
 	w.e.POST("/user/login", w.loginHandler)
 	w.e.POST("/user/logout", w.logoutHandler)
 	w.e.POST("/user/register", w.registerHandler)
+	w.e.POST("/user/changepassword", w.changePasswordHandler)
 	w.e.GET("/user/tests", w.listTestsHandler)
 
 	// Comments API

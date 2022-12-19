@@ -22,6 +22,7 @@ type Service interface {
 	CreateUser(ctx context.Context, username, password string) (*UserDTO, error)
 	GetUserByName(ctx context.Context, username string) (*UserDTO, error)
 	CheckUserPassword(ctx context.Context, username, password string) error
+	ChangePassword(ctx context.Context, username, newPassword string) error
 
 	// Modules
 	GetModuleForUser(ctx context.Context, user *UserDTO, moduleId int) (*ModuleDTO, error)
@@ -219,6 +220,10 @@ func (s *service) CreateUser(ctx context.Context, username, password string) (*U
 }
 func (s *service) CheckUserPassword(ctx context.Context, username, password string) error {
 	return s.us.CheckUserPassword(ctx, username, password)
+}
+
+func (s *service) ChangePassword(ctx context.Context, username, password string) error {
+	return s.us.ChangePassword(ctx, username, password)
 }
 
 func (s *service) CheckTest(ctx context.Context, username string, userData io.Reader) (*TestResultDTO, error) {
