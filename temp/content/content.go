@@ -1,15 +1,16 @@
 // content created for reading the modules data from the disk and write into MongoDB
 // modules_dir
 // ∟ stage-<id>
-//    ∟ module-<id>
-//    |  ∟ module.json
-//    |  ∟ part-<id>
-//    |  |  ∟ data.html
-//    |  ∟ part-<id>
-//    |	 ∟ data.html
-//    |	 ∟ questions.json
-//    ∟ module-<id>
-//    ...
+//
+//	∟ module-<id>
+//	|  ∟ module.json
+//	|  ∟ part-<id>
+//	|  |  ∟ data.html
+//	|  ∟ part-<id>
+//	|	 ∟ data.html
+//	|	 ∟ questions.json
+//	∟ module-<id>
+//	...
 package content
 
 import (
@@ -20,8 +21,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
+	"github.com/CyrilKuzmin/itpath69/internal/service/module"
+	"github.com/CyrilKuzmin/itpath69/internal/service/tests"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )

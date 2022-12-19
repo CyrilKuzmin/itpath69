@@ -5,6 +5,7 @@ import (
 
 	"github.com/CyrilKuzmin/itpath69/store"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 )
 
 func (w *Web) loginHandler(c echo.Context) error {
@@ -32,6 +33,7 @@ func (w *Web) registerHandler(c echo.Context) error {
 	password := c.FormValue("password")
 	_, err := w.srv.CreateUser(c.Request().Context(), username, password)
 	if err != nil {
+		w.log.Warn("wtf err", zap.Error(err))
 		if store.ErrorIs(err, store.AlreadyExistsErr) {
 			return errUserAlreadyExists(username)
 		} else {

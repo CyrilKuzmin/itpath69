@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
+	"github.com/CyrilKuzmin/itpath69/internal/service/comment"
 	"github.com/CyrilKuzmin/itpath69/store"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"

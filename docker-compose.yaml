@@ -1,0 +1,37 @@
+version: "3.9" 
+
+volumes:
+  mongo_data:
+    name: mongo_data_local
+
+networks:
+  backend: 
+
+services:
+  web:
+    container_name: itpath69
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on: 
+      - mongo
+    restart: unless-stopped
+    ports:
+      - "1323:1323"
+    networks:
+      - backend
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/
+  mongo:
+    container_name: mongo
+    image: mongo:6.0.3
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - 27017:27017
+    networks:
+      - backend
+    environment:
+      - MONGO_INITDB_DATABASE=itpath69
+    command: mongod
+

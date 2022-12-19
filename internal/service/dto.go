@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"time"
 
-	"github.com/CyrilKuzmin/itpath69/internal/domain/users"
+	"github.com/CyrilKuzmin/itpath69/internal/service/users"
 )
 
 type UserDTO struct {

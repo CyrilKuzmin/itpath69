@@ -3,15 +3,17 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"html/template"
 	"io"
 
-	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/course"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/progress"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/users"
+	"github.com/CyrilKuzmin/itpath69/internal/service/comment"
+	"github.com/CyrilKuzmin/itpath69/internal/service/course"
+	"github.com/CyrilKuzmin/itpath69/internal/service/module"
+	"github.com/CyrilKuzmin/itpath69/internal/service/progress"
+	"github.com/CyrilKuzmin/itpath69/internal/service/tests"
+	"github.com/CyrilKuzmin/itpath69/internal/service/users"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -188,17 +190,23 @@ func (s *service) CreateUser(ctx context.Context, username, password string) (*U
 	}
 	cc, err := s.crs.GetCourseByID(ctx, user.CurrentCourse)
 	if err != nil {
-		return nil, err
+		// if no default course in DB just return empty user
+		if !errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, err
+		}
+		return &UserDTO{
+			User:             user,
+			ModulesOpen:      0,
+			ModulesCompleted: 0,
+			ModulesTotal:     0,
+		}, nil
 	}
+
 	modulesToOpen := len(cc.Stages[0].Modules)
 	pr, err := s.ps.CreateCourseProgress(ctx, user.Id, user.CurrentCourse, cc.TotalModules, modulesToOpen) // total amount of modules
 	if err != nil {
 		return nil, err
 	}
-	// err = s.ps.OpenNewModules(ctx, user.Id, user.CurrentCourse, 4)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	total, opened, completed := countModulesProgress(pr)
 	return &UserDTO{
 		User:             user,

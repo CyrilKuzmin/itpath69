@@ -1,11 +1,11 @@
 package service
 
 import (
-	"github.com/CyrilKuzmin/itpath69/internal/domain/comment"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/course"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/module"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/progress"
-	"github.com/CyrilKuzmin/itpath69/internal/domain/tests"
+	"github.com/CyrilKuzmin/itpath69/internal/service/comment"
+	"github.com/CyrilKuzmin/itpath69/internal/service/course"
+	"github.com/CyrilKuzmin/itpath69/internal/service/module"
+	"github.com/CyrilKuzmin/itpath69/internal/service/progress"
+	"github.com/CyrilKuzmin/itpath69/internal/service/tests"
 )
 
 const formatString = "02 Jan 06 15:04 MST"

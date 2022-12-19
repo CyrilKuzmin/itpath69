@@ -38,6 +38,12 @@ h6 {
     font-family: var(--font-primary);
 }
 
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 
 /*--------------------------------------------------------------
 # Preloader
@@ -3226,6 +3232,7 @@ section {
 .footer {
     color: var(--color-white);
     font-size: 14px;
+    margin-top: auto;
 }
 
 .footer .footer-content {

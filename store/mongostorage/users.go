@@ -3,7 +3,7 @@ package mongostorage
 import (
 	"context"
 
-	"github.com/CyrilKuzmin/itpath69/internal/domain/users"
+	"github.com/CyrilKuzmin/itpath69/internal/service/users"
 	"github.com/CyrilKuzmin/itpath69/store"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
