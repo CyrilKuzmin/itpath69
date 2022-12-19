@@ -15,7 +15,7 @@ type Config struct {
 	Env    string `env:"ENV,default=local"`
 	Secret string `env:"SECRET,default=secret"`
 	Mongo  struct {
-		URI      string `env:"URL,default=mongodb://localhost:27017/"`
+		URI      string `env:"URL,default=mongodb://mongo:27017/"`
 		Database string `env:"DB,default=itpath69"`
 	} `env:",prefix=MONGO_"`
 }
