@@ -35,7 +35,7 @@ func NewApp(conf *config.Config) *App {
 		log.Error("cannot init session storage", zap.Error(err))
 	}
 	// init service and web-server
-	service := service.NewService(log, st)
+	service := service.NewWebService(log, st)
 	webserver := web.NewWeb(log, session, service)
 	// create App and init handlers/middlewares
 	s := &App{

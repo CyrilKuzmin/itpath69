@@ -17,11 +17,11 @@ import (
 type Web struct {
 	session sessions.Store
 	log     *zap.Logger
-	srv     service.Service
+	srv     service.WebService
 	e       *echo.Echo
 }
 
-func NewWeb(log *zap.Logger, sessionStore sessions.Store, srv service.Service) *Web {
+func NewWeb(log *zap.Logger, sessionStore sessions.Store, srv service.WebService) *Web {
 	w := &Web{
 		session: sessionStore,
 		log:     log,

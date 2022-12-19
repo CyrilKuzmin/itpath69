@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type Service interface {
+type WebService interface {
 	// User
 	CreateUser(ctx context.Context, username, password string) (*UserDTO, error)
 	GetUserByName(ctx context.Context, username string) (*UserDTO, error)
@@ -61,7 +61,7 @@ type service struct {
 	crs course.Service
 }
 
-func NewService(log *zap.Logger, s Storage) Service {
+func NewWebService(log *zap.Logger, s Storage) WebService {
 	// init echo server with its dependencies
 	us := users.NewService(s, log)
 	ms := module.NewService(s, log)
